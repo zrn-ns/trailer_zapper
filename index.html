@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trailer Zapper</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Trailer Zapper</h1>
+    <div class="filters">
+        <div class="filter-section">
+            <h3>配信サービスで絞り込み</h3>
+            <div class="provider-filters">
+                <label>
+                    <input type="checkbox" name="provider" value="8" id="netflix-filter"> Netflix
+                </label>
+                <label>
+                    <input type="checkbox" name="provider" value="9" id="prime-video-filter"> Prime Video
+                </label>
+            </div>
+        </div>
+        <div class="filter-section">
+            <button id="genre-filter-toggle">ジャンルで絞り込み</button>
+            <div id="genre-filter-list" class="hidden"></div>
+        </div>
+    </div>
+
+    <div id="app">
+        <div id="player-container"></div>
+        <div id="movie-info"></div>
+        <div class="controls">
+            <button id="prev-button">前へ</button>
+            <button id="next-button">次へ</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

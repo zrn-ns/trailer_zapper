@@ -51,6 +51,7 @@ async function fetchFromTMDB(endpoint, params = {}) {
 // --- グローバル変数と状態管理 ---
 const state = {
     movies: [],
+    history: [],
     currentMovieIndex: 0,
     selectedProviders: [],
     ignoredMovies: new Set(),
@@ -258,8 +259,6 @@ function markCurrentMovieProcessed() {
         state.processedMovies.add(movie.id);
         persistProcessedMovies();
     }
-
-    state.movies.splice(state.currentMovieIndex, 1);
 }
 
 function updatePauseButton() {
@@ -448,6 +447,10 @@ async function loadAndDisplayTrailer(index) {
     }
 
     state.currentMovieIndex = index;
+    markCurrentMovieProcessed();
+    if (!state.history.includes(index)) {
+        state.history.push(index);
+    }
     updateButtonStates();
     const movie = state.movies[state.currentMovieIndex];
     console.log(`'${movie.title}' の予告編を検索中...`);
@@ -471,9 +474,7 @@ async function loadAndDisplayTrailer(index) {
     }
 
     console.log(`'${movie.title}' に再生可能な予告編が見つかりませんでした。次の映画を試します。`);
-    const nextIndex = state.currentMovieIndex;
-    markCurrentMovieProcessed();
-    loadAndDisplayTrailer(nextIndex);
+    playNext();
 }
 
 async function updateAndFetchMovies(resetPage = true) {
@@ -482,7 +483,6 @@ async function updateAndFetchMovies(resetPage = true) {
 
     try {
         if (resetPage) {
-            markCurrentMovieProcessed();
             state.currentPage = 1;
             state.totalPages = 1;
             state.movies = [];
@@ -569,17 +569,23 @@ async function updateAndFetchMovies(resetPage = true) {
 function playNext() {
     state.isPaused = true;
     updatePauseButton();
-    const nextIndex = state.currentMovieIndex;
-    markCurrentMovieProcessed();
-    loadAndDisplayTrailer(nextIndex);
+    const currentHistoryIndex = state.history.indexOf(state.currentMovieIndex);
+    if (currentHistoryIndex < state.history.length - 1) {
+        const targetMovieIndex = state.history[currentHistoryIndex + 1];
+        loadAndDisplayTrailer(targetMovieIndex);
+    } else {
+        const nextMovieIndex = state.currentMovieIndex + 1;
+        loadAndDisplayTrailer(nextMovieIndex);
+    }
 }
 
 function playPrev() {
     state.isPaused = true;
     updatePauseButton();
-    const targetIndex = Math.max(state.currentMovieIndex - 1, 0);
-    markCurrentMovieProcessed();
-    loadAndDisplayTrailer(targetIndex);
+    const currentHistoryIndex = state.history.indexOf(state.currentMovieIndex);
+    const targetHistoryIndex = Math.max(currentHistoryIndex - 1, 0);
+    const targetMovieIndex = state.history[targetHistoryIndex];
+    loadAndDisplayTrailer(targetMovieIndex);
 }
 
 function handleIgnoreClick() {
@@ -590,8 +596,7 @@ function handleIgnoreClick() {
     state.ignoredMovies.add(movieToIgnore.id);
     localStorage.setItem('ignoredMovies', JSON.stringify(Array.from(state.ignoredMovies)));
 
-    state.movies.splice(state.currentMovieIndex, 1);
-    loadAndDisplayTrailer(state.currentMovieIndex);
+    playNext();
 }
 
 // --- 初期化処理 ---

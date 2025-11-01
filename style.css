@@ -401,9 +401,13 @@ body {
     background: rgba(255, 255, 255, 0.16);
 }
 
-#ignore-button {
+.info-actions {
+    display: flex;
+    gap: 16px;
     margin-top: auto;
-    align-self: flex-start;
+}
+
+#ignore-button {
     padding: 10px 20px;
     border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.22);

@@ -136,44 +136,34 @@ async function displayTrailer(youtubeKey) {
         return false;
     }
 
-    let playerHost = document.getElementById('youtube-player');
-    if (!playerHost) {
-        playerContainer.innerHTML = '';
-        playerHost = document.createElement('div');
-        playerHost.id = 'youtube-player';
-        playerContainer.appendChild(playerHost);
-    }
+    destroyYoutubePlayer(); // 常にプレーヤーを破棄して再生成する
 
-    if (!state.youtubePlayer) {
-        state.youtubePlayer = new YT.Player(playerHost, {
-            height: '480',
-            width: '854',
-            videoId: youtubeKey,
-            playerVars: {
-                autoplay: 1,
-                rel: 0,
-                mute: 1,
+    playerContainer.innerHTML = ''; // コンテナをクリア
+    const playerHost = document.createElement('div');
+    playerHost.id = 'youtube-player';
+    playerContainer.appendChild(playerHost);
+
+    state.youtubePlayer = new YT.Player(playerHost, {
+        height: '480',
+        width: '854',
+        videoId: youtubeKey,
+        playerVars: {
+            autoplay: 1,
+            rel: 0,
+            mute: 1, // onReadyで音声設定を適用するため、最初はミュート
+        },
+        events: {
+            onReady: (event) => {
+                applySoundPreference();
+                event.target.playVideo();
             },
-            events: {
-                onReady: (event) => {
-                    event.target.playVideo();
-                    applySoundPreference();
-                },
-                onError: handleYoutubeError,
-                onStateChange: handleYoutubeStateChange,
-            },
-        });
-    } else {
-        state.youtubePlayer.loadVideoById({
-            videoId: youtubeKey,
-        });
-        state.youtubePlayer.playVideo();
-        applySoundPreference();
-    }
+            onError: handleYoutubeError,
+            onStateChange: handleYoutubeStateChange,
+        },
+    });
 
     state.isPaused = false;
     updatePauseButton();
-    applySoundPreference();
     return true;
 }
 
@@ -190,7 +180,10 @@ function displayMovieInfo(movie) {
             <h2>${movie.title}</h2>
             <div class="genres">${movieGenres}</div>
             <p>${movie.overview || 'あらすじはありません。'}</p>
-            <button id="ignore-button" class="button">興味なし</button>
+            <div class="info-actions">
+                <button id="ignore-button" class="button">興味なし</button>
+                <button id="open-service-button" class="ghost-button">配信サービスで開く</button>
+            </div>
         </div>
     `;
     showUI();
@@ -309,6 +302,14 @@ function toggleUIVisibility() {
     }
 }
 
+function openMovieOnService() {
+    const movie = state.movies[state.currentMovieIndex];
+    if (!movie) return;
+
+    const tmdbUrl = `https://www.themoviedb.org/movie/${movie.id}`;
+    window.open(tmdbUrl, '_blank', 'noopener,noreferrer');
+}
+
 function handleKeyboardShortcuts(event) {
     if (!event) return;
     const activeTag = document.activeElement && document.activeElement.tagName;
@@ -338,6 +339,20 @@ function handleKeyboardShortcuts(event) {
         case 'H':
             event.preventDefault();
             toggleUIVisibility();
+            break;
+        case 'n':
+        case 'N':
+            event.preventDefault();
+            playNext();
+            break;
+        case 'p':
+        case 'P':
+            event.preventDefault();
+            playPrev();
+            break;
+        case 'Enter':
+            event.preventDefault();
+            openMovieOnService();
             break;
         default:
             break;
@@ -630,6 +645,8 @@ async function initializeApp() {
     movieInfoContainer.addEventListener('click', (event) => {
         if (event.target.id === 'ignore-button') {
             handleIgnoreClick();
+        } else if (event.target.id === 'open-service-button') {
+            openMovieOnService();
         } else if (event.target.classList.contains('genre-tag')) {
             const genreId = parseInt(event.target.dataset.genreId);
             // 動的タグクリックで除外リストに追加
@@ -639,6 +656,17 @@ async function initializeApp() {
                 populateGenreFilterUI(); // チェックボックスのUIを更新
                 updateAndFetchMovies(true);
             }
+        }
+    });
+
+    immersiveStage.addEventListener('click', (event) => {
+        // クリックされた要素がUI要素でない場合、UIの表示/非表示を切り替える
+        if (
+            !uiLayer.contains(event.target) &&
+            event.target !== uiToggleButton &&
+            state.hasStarted
+        ) {
+            toggleUIVisibility();
         }
     });
 

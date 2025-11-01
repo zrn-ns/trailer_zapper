@@ -56,7 +56,7 @@ const state = {
     selectedProviders: [],
     ignoredMovies: new Set(),
     genres: [],
-    excludedGenres: new Set(), // `selectedGenres` から `excludedGenres` に戻す
+    selectedGenres: new Set(),
     youtubePlayer: null,
     youtubeApiPromise: null,
     currentPage: 1,
@@ -220,9 +220,9 @@ function setSoundEnabled(enabled) {
 }
 
 function populateGenreFilterUI() {
-    genreFilterList.innerHTML = '<p class="filter-explanation">チェックを入れたジャンルは表示されません。</p>'; // 説明文を動的に追加
+    genreFilterList.innerHTML = '<p class="filter-explanation">チェックを入れたジャンルのみ表示されます。</p>'; // 説明文を動的に追加
     state.genres.forEach(genre => {
-        const isChecked = state.excludedGenres.has(genre.id);
+        const isChecked = state.selectedGenres.has(genre.id);
         const label = document.createElement('label');
         label.innerHTML = `<input type="checkbox" value="${genre.id}" ${isChecked ? 'checked' : ''}> ${genre.name}`;
         genreFilterList.appendChild(label);
@@ -523,8 +523,8 @@ async function updateAndFetchMovies(resetPage = true) {
                 page: pageToFetch,
             };
 
-            if (state.excludedGenres.size > 0) {
-                apiParams.without_genres = Array.from(state.excludedGenres).join(',');
+            if (state.selectedGenres.size > 0) {
+                apiParams.with_genres = Array.from(state.selectedGenres).join(',');
             }
 
             const movieData = await fetchFromTMDB('/discover/movie', apiParams);
@@ -643,11 +643,11 @@ async function initializeApp() {
     genreFilterList.addEventListener('change', (event) => {
         const genreId = parseInt(event.target.value);
         if (event.target.checked) {
-            state.excludedGenres.add(genreId);
+            state.selectedGenres.add(genreId);
         } else {
-            state.excludedGenres.delete(genreId);
+            state.selectedGenres.delete(genreId);
         }
-        localStorage.setItem('excludedGenres', JSON.stringify(Array.from(state.excludedGenres)));
+        localStorage.setItem('selectedGenres', JSON.stringify(Array.from(state.selectedGenres)));
         updateAndFetchMovies(true);
     });
 
@@ -658,11 +658,10 @@ async function initializeApp() {
             openMovieOnService();
         } else if (event.target.classList.contains('genre-tag')) {
             const genreId = parseInt(event.target.dataset.genreId);
-            // 動的タグクリックで除外リストに追加
-            if (!state.excludedGenres.has(genreId)) {
-                state.excludedGenres.add(genreId);
-                localStorage.setItem('excludedGenres', JSON.stringify(Array.from(state.excludedGenres)));
-                populateGenreFilterUI(); // チェックボックスのUIを更新
+            if (!state.selectedGenres.has(genreId)) {
+                state.selectedGenres.add(genreId);
+                localStorage.setItem('selectedGenres', JSON.stringify(Array.from(state.selectedGenres)));
+                populateGenreFilterUI(); 
                 updateAndFetchMovies(true);
             }
         }
@@ -690,8 +689,8 @@ async function initializeApp() {
     const savedProcessed = JSON.parse(localStorage.getItem('processedMovies')) || [];
     state.processedMovies = new Set(savedProcessed);
 
-    const savedExcludedGenres = JSON.parse(localStorage.getItem('excludedGenres')) || []; // キーを戻す
-    state.excludedGenres = new Set(savedExcludedGenres);
+    const savedSelectedGenres = JSON.parse(localStorage.getItem('selectedGenres')) || [];
+    state.selectedGenres = new Set(savedSelectedGenres);
 
     // ジャンルリストを取得してからアプリのメインロジックを開始
     const genreData = await fetchFromTMDB('/genre/movie/list');

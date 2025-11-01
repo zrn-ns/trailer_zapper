@@ -64,6 +64,7 @@ const state = {
     processedMovies: new Set(),
     isPaused: false,
     isSoundEnabled: false,
+    hasStarted: false,
 };
 
 // --- DOM要素 ---
@@ -82,6 +83,8 @@ const immersiveStage = document.getElementById('immersive-stage');
 const fullscreenButton = document.getElementById('fullscreen-button');
 const uiToggleButton = document.getElementById('ui-toggle-button');
 const playerShell = document.querySelector('.player-shell');
+const startModal = document.getElementById('start-modal');
+const startButton = document.getElementById('start-button');
 
 // --- UI更新関数 ---
 
@@ -291,6 +294,7 @@ function togglePause() {
 }
 
 function toggleUIVisibility() {
+    if (!state.hasStarted) return;
     if (!uiToggleButton) return;
     if (isManuallyHidden) {
         isManuallyHidden = false;
@@ -309,6 +313,14 @@ function handleKeyboardShortcuts(event) {
     if (!event) return;
     const activeTag = document.activeElement && document.activeElement.tagName;
     if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || document.activeElement?.isContentEditable) {
+        return;
+    }
+
+    if (!state.hasStarted) {
+        if ((event.key === ' ' || event.key === 'Enter') && startButton && !startModal?.classList.contains('hidden')) {
+            event.preventDefault();
+            startButton.click();
+        }
         return;
     }
 
@@ -430,12 +442,12 @@ function setupAutoHideUI() {
     }
 
     const registerInteraction = () => {
-        if (!isWindowFocused || !isPointerInside) return;
+        if (!state.hasStarted || !isWindowFocused || !isPointerInside) return;
         showUI();
     };
 
     document.addEventListener('mousemove', (event) => {
-        if (!isWindowFocused || !isPointerInside) return;
+        if (!state.hasStarted || !isWindowFocused || !isPointerInside) return;
         if (lastPointerX === event.clientX && lastPointerY === event.clientY) {
             return;
         }
@@ -460,7 +472,9 @@ function setupAutoHideUI() {
         requestAnimationFrame(monitorVisibility);
     };
 
-    showUI(true);
+    if (state.hasStarted) {
+        showUI(true);
+    }
     requestAnimationFrame(monitorVisibility);
 }
 
@@ -727,7 +741,24 @@ async function initializeApp() {
     }
 
     setupAutoHideUI();
-    updateAndFetchMovies(true);
+    if (startModal && startButton) {
+        startModal.classList.remove('hidden');
+        startButton.addEventListener('click', () => {
+            startButton.disabled = true;
+            state.hasStarted = true;
+            startModal.classList.add('hidden');
+            setSoundEnabled(true);
+            isManuallyHidden = true;
+            if (uiToggleButton) {
+                uiToggleButton.textContent = 'UI表示';
+            }
+            hideUI(true);
+            updateAndFetchMovies(true);
+        }, { once: true });
+    } else {
+        state.hasStarted = true;
+        updateAndFetchMovies(true);
+    }
 }
 
 initializeApp();

@@ -225,7 +225,6 @@ function applySoundPreference() {
 
 function setSoundEnabled(enabled) {
     state.isSoundEnabled = enabled;
-    localStorage.setItem('soundEnabled', JSON.stringify(enabled));
     applySoundPreference();
 }
 
@@ -686,10 +685,6 @@ async function initializeApp() {
     const savedExcludedGenres = JSON.parse(localStorage.getItem('excludedGenres')) || []; // キーを戻す
     state.excludedGenres = new Set(savedExcludedGenres);
 
-    const savedSoundPreference = localStorage.getItem('soundEnabled');
-    if (savedSoundPreference !== null) {
-        state.isSoundEnabled = JSON.parse(savedSoundPreference);
-    }
     updateSoundButton();
 
     // ジャンルリストを取得してからアプリのメインロジックを開始

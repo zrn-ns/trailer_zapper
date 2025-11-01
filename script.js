@@ -287,73 +287,90 @@ async function updateAndFetchMovies(resetPage = true) {
     if (state.isFetchingMovies) return;
     state.isFetchingMovies = true;
 
-    if (resetPage) {
-        markCurrentMovieProcessed();
-        state.currentPage = 1;
-        state.totalPages = 1;
-        state.movies = [];
-        state.currentMovieIndex = 0;
-    }
-
-    const selectedProviders = [];
-    if (netflixFilter.checked) selectedProviders.push(PROVIDER_IDS.NETFLIX);
-    if (primeVideoFilter.checked) selectedProviders.push(PROVIDER_IDS.PRIME_VIDEO);
-
-    localStorage.setItem('selectedProviders', JSON.stringify(selectedProviders));
-    state.selectedProviders = selectedProviders;
-
-    if (selectedProviders.length === 0) {
-        state.movies = [];
-        showLoadingMessage('視聴したい配信サービスを選択してください。');
-        updateButtonStates();
-        state.isFetchingMovies = false;
-        return;
-    }
-
-    showLoadingMessage('映画情報を取得中...');
-
-    const apiParams = {
-        with_watch_providers: selectedProviders.join('|'),
-        watch_region: REGION,
-        sort_by: 'popularity.desc',
-        page: state.currentPage,
-    };
-
-    if (state.excludedGenres.size > 0) {
-        apiParams.without_genres = Array.from(state.excludedGenres).join(',');
-    }
-
-    const movieData = await fetchFromTMDB('/discover/movie', apiParams);
-
-    if (movieData && movieData.results) {
-        state.totalPages = movieData.total_pages || 1;
-        const newMovies = movieData.results.filter(movie => {
-            const movieId = movie.id;
-            return !state.ignoredMovies.has(movieId) && !state.processedMovies.has(movieId);
-        });
-
+    try {
         if (resetPage) {
-            state.movies = newMovies;
-        } else {
-            state.movies = [...state.movies, ...newMovies];
+            markCurrentMovieProcessed();
+            state.currentPage = 1;
+            state.totalPages = 1;
+            state.movies = [];
+            state.currentMovieIndex = 0;
         }
 
-        if (state.movies.length > 0) {
-            if (resetPage) {
-                loadAndDisplayTrailer(0);
-            } else {
-                loadAndDisplayTrailer(state.currentMovieIndex);
-            }
-        } else {
-            showLoadingMessage('視聴可能な映画はすべて「興味なし」または除外ジャンルに設定されています。');
+        const selectedProviders = [];
+        if (netflixFilter.checked) selectedProviders.push(PROVIDER_IDS.NETFLIX);
+        if (primeVideoFilter.checked) selectedProviders.push(PROVIDER_IDS.PRIME_VIDEO);
+
+        localStorage.setItem('selectedProviders', JSON.stringify(selectedProviders));
+        state.selectedProviders = selectedProviders;
+
+        if (selectedProviders.length === 0) {
+            state.movies = [];
+            showLoadingMessage('視聴したい配信サービスを選択してください。');
             updateButtonStates();
+            return;
         }
-    } else {
-        state.movies = [];
-        showLoadingMessage('選択されたサービスで視聴可能な映画が見つかりませんでした。');
-        updateButtonStates();
+
+        showLoadingMessage('映画情報を取得中...');
+
+        let pageToFetch = state.currentPage;
+        const targetIndex = resetPage
+            ? 0
+            : Math.max(Math.min(state.currentMovieIndex, state.movies.length), 0);
+        const existingMovies = resetPage ? [] : [...state.movies];
+
+        while (true) {
+            state.currentPage = pageToFetch;
+
+            const apiParams = {
+                with_watch_providers: selectedProviders.join('|'),
+                watch_region: REGION,
+                sort_by: 'popularity.desc',
+                page: pageToFetch,
+            };
+
+            if (state.excludedGenres.size > 0) {
+                apiParams.without_genres = Array.from(state.excludedGenres).join(',');
+            }
+
+            const movieData = await fetchFromTMDB('/discover/movie', apiParams);
+
+            if (!movieData || !movieData.results) {
+                state.movies = resetPage ? [] : existingMovies;
+                showLoadingMessage('選択されたサービスで視聴可能な映画が見つかりませんでした。');
+                updateButtonStates();
+                return;
+            }
+
+            state.totalPages = movieData.total_pages || pageToFetch;
+
+            const newMovies = movieData.results.filter(movie => {
+                const movieId = movie.id;
+                return !state.ignoredMovies.has(movieId) && !state.processedMovies.has(movieId);
+            });
+
+            if (newMovies.length > 0) {
+                if (resetPage) {
+                    state.movies = newMovies;
+                } else {
+                    state.movies = [...existingMovies, ...newMovies];
+                }
+                state.currentPage = pageToFetch;
+                loadAndDisplayTrailer(targetIndex);
+                return;
+            }
+
+            if (pageToFetch >= state.totalPages) {
+                state.movies = resetPage ? [] : existingMovies;
+                showLoadingMessage('視聴可能な映画はすべて「興味なし」または除外ジャンルに設定されています。');
+                updateButtonStates();
+                return;
+            }
+
+            pageToFetch += 1;
+        }
+    } finally {
+        state.isFetchingMovies = false;
     }
-    state.isFetchingMovies = false;
 }
 
 function playNext() {

@@ -56,6 +56,11 @@ const state = {
     ignoredMovies: new Set(),
     genres: [],
     excludedGenres: new Set(), // `selectedGenres` から `excludedGenres` に戻す
+    youtubePlayer: null,
+    youtubeApiPromise: null,
+    currentPage: 1,
+    totalPages: 1,
+    isFetchingMovies: false,
 };
 
 // --- DOM要素 ---
@@ -73,19 +78,87 @@ const genreFilterList = document.getElementById('genre-filter-list');
 
 function updateButtonStates() {
     prevButton.disabled = state.currentMovieIndex <= 0;
-    nextButton.disabled = state.currentMovieIndex >= state.movies.length - 1;
+    nextButton.disabled = state.currentMovieIndex >= state.movies.length - 1 && state.currentPage >= state.totalPages;
 }
 
-function displayTrailer(youtubeKey) {
-    playerContainer.innerHTML = '';
-    const iframe = document.createElement('iframe');
-    iframe.src = `https://www.youtube.com/embed/${youtubeKey}?autoplay=1&mute=1&rel=0`;
-    iframe.width = '854';
-    iframe.height = '480';
-    iframe.frameBorder = '0';
-    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-    iframe.allowFullscreen = true;
-    playerContainer.appendChild(iframe);
+function destroyYoutubePlayer() {
+    if (state.youtubePlayer) {
+        state.youtubePlayer.destroy();
+        state.youtubePlayer = null;
+    }
+}
+
+function loadYoutubeApiScript() {
+    if (window.YT && typeof window.YT.Player === 'function') {
+        return Promise.resolve();
+    }
+
+    if (!state.youtubeApiPromise) {
+        state.youtubeApiPromise = new Promise((resolve, reject) => {
+            const scriptTag = document.createElement('script');
+            scriptTag.src = 'https://www.youtube.com/iframe_api';
+            scriptTag.async = true;
+            scriptTag.onerror = () => reject(new Error('YouTube IFrame APIの読み込みに失敗しました。'));
+            document.head.appendChild(scriptTag);
+
+            const previousCallback = window.onYouTubeIframeAPIReady;
+            window.onYouTubeIframeAPIReady = () => {
+                if (typeof previousCallback === 'function') {
+                    previousCallback();
+                }
+                resolve();
+            };
+        });
+    }
+
+    return state.youtubeApiPromise;
+}
+
+async function displayTrailer(youtubeKey) {
+    try {
+        await loadYoutubeApiScript();
+    } catch (error) {
+        console.error(error);
+        showLoadingMessage('予告編プレーヤーの初期化に失敗しました。');
+        playNext();
+        return false;
+    }
+
+    let playerHost = document.getElementById('youtube-player');
+    if (!playerHost) {
+        playerContainer.innerHTML = '';
+        playerHost = document.createElement('div');
+        playerHost.id = 'youtube-player';
+        playerContainer.appendChild(playerHost);
+    }
+
+    if (!state.youtubePlayer) {
+        state.youtubePlayer = new YT.Player(playerHost, {
+            height: '480',
+            width: '854',
+            videoId: youtubeKey,
+            playerVars: {
+                autoplay: 1,
+                mute: 1,
+                rel: 0,
+            },
+            events: {
+                onReady: (event) => {
+                    event.target.mute();
+                    event.target.playVideo();
+                },
+                onError: handleYoutubeError,
+                onStateChange: handleYoutubeStateChange,
+            },
+        });
+    } else {
+        state.youtubePlayer.loadVideoById({
+            videoId: youtubeKey,
+        });
+        state.youtubePlayer.playVideo();
+    }
+
+    return true;
 }
 
 function displayMovieInfo(movie) {
@@ -107,6 +180,7 @@ function displayMovieInfo(movie) {
 }
 
 function showLoadingMessage(message) {
+    destroyYoutubePlayer();
     playerContainer.innerHTML = `<p>${message}</p>`;
     movieInfoContainer.innerHTML = '';
 }
@@ -123,11 +197,44 @@ function populateGenreFilterUI() {
 
 // --- コアロジック ---
 
+function handleYoutubeError(event) {
+    console.warn('YouTubeプレーヤーエラーが発生しました。コード:', event.data);
+    playNext();
+}
+
+function handleYoutubeStateChange(event) {
+    if (event.data === YT.PlayerState.ENDED) {
+        playNext();
+    }
+}
+
 async function loadAndDisplayTrailer(index) {
-    if (index < 0 || index >= state.movies.length) {
-        console.log('リストの範囲外です。');
+    if (index < 0) {
+        console.log('リストの先頭です。');
         updateButtonStates();
         return;
+    }
+
+    if (index >= state.movies.length) {
+        // 現在のリストの終わりに達し、まだ次のページがある場合
+        if (state.currentPage < state.totalPages && !state.isFetchingMovies) {
+            console.log('現在のリストの終わりに達しました。次のページをロードします...');
+            state.currentPage++;
+            await updateAndFetchMovies(false); // 次のページをロードし、既存のリストに追加
+            // 新しい映画が追加されたので、再度同じインデックスで試す
+            if (state.movies.length > index) {
+                loadAndDisplayTrailer(index);
+            } else {
+                showLoadingMessage('再生可能な予告編がこれ以上見つかりませんでした。');
+            }
+            return;
+        } else {
+            // すべてのページを試したか、現在フェッチ中の場合
+            console.log('すべての映画の予告編を試しましたが、これ以上見つかりませんでした。');
+            showLoadingMessage('再生可能な予告編がこれ以上見つかりませんでした。');
+            updateButtonStates();
+            return;
+        }
     }
 
     state.currentMovieIndex = index;
@@ -145,21 +252,29 @@ async function loadAndDisplayTrailer(index) {
 
         if (videoToPlay) {
             console.log(`再生する予告編: ${movie.title}`);
-            displayTrailer(videoToPlay.key);
-            displayMovieInfo(movie);
+            const started = await displayTrailer(videoToPlay.key);
+            if (started) {
+                displayMovieInfo(movie);
+            }
             return;
         }
     }
 
     console.log(`'${movie.title}' に再生可能な予告編が見つかりませんでした。次の映画を試します。`);
-    if (state.currentMovieIndex + 1 < state.movies.length) {
-        loadAndDisplayTrailer(index + 1);
-    } else {
-        showLoadingMessage('再生可能な予告編がこれ以上見つかりませんでした。');
-    }
+    loadAndDisplayTrailer(index + 1);
 }
 
-async function updateAndFetchMovies() {
+async function updateAndFetchMovies(resetPage = true) {
+    if (state.isFetchingMovies) return;
+    state.isFetchingMovies = true;
+
+    if (resetPage) {
+        state.currentPage = 1;
+        state.totalPages = 1;
+        state.movies = [];
+        state.currentMovieIndex = 0;
+    }
+
     const selectedProviders = [];
     if (netflixFilter.checked) selectedProviders.push(PROVIDER_IDS.NETFLIX);
     if (primeVideoFilter.checked) selectedProviders.push(PROVIDER_IDS.PRIME_VIDEO);
@@ -171,6 +286,7 @@ async function updateAndFetchMovies() {
         state.movies = [];
         showLoadingMessage('視聴したい配信サービスを選択してください。');
         updateButtonStates();
+        state.isFetchingMovies = false;
         return;
     }
 
@@ -180,19 +296,31 @@ async function updateAndFetchMovies() {
         with_watch_providers: selectedProviders.join('|'),
         watch_region: REGION,
         sort_by: 'popularity.desc',
+        page: state.currentPage,
     };
 
-    // ロジックを元に戻す: excludedGenres に何かあれば `without_genres` を使う
     if (state.excludedGenres.size > 0) {
-        apiParams.without_genres = Array.from(state.excludedGenres).join(','); // 除外はカンマ区切り
+        apiParams.without_genres = Array.from(state.excludedGenres).join(',');
     }
 
     const movieData = await fetchFromTMDB('/discover/movie', apiParams);
 
-    if (movieData && movieData.results && movieData.results.length > 0) {
-        state.movies = movieData.results.filter(movie => !state.ignoredMovies.has(movie.id));
+    if (movieData && movieData.results) {
+        state.totalPages = movieData.total_pages || 1;
+        const newMovies = movieData.results.filter(movie => !state.ignoredMovies.has(movie.id));
+
+        if (resetPage) {
+            state.movies = newMovies;
+        } else {
+            state.movies = [...state.movies, ...newMovies];
+        }
+
         if (state.movies.length > 0) {
-            loadAndDisplayTrailer(0);
+            if (resetPage) {
+                loadAndDisplayTrailer(0);
+            } else {
+                loadAndDisplayTrailer(state.currentMovieIndex);
+            }
         } else {
             showLoadingMessage('視聴可能な映画はすべて「興味なし」または除外ジャンルに設定されています。');
             updateButtonStates();
@@ -202,6 +330,7 @@ async function updateAndFetchMovies() {
         showLoadingMessage('選択されたサービスで視聴可能な映画が見つかりませんでした。');
         updateButtonStates();
     }
+    state.isFetchingMovies = false;
 }
 
 function playNext() {
@@ -221,11 +350,7 @@ function handleIgnoreClick() {
     localStorage.setItem('ignoredMovies', JSON.stringify(Array.from(state.ignoredMovies)));
 
     state.movies.splice(state.currentMovieIndex, 1);
-    if (state.currentMovieIndex >= state.movies.length) {
-        loadAndDisplayTrailer(state.currentMovieIndex - 1);
-    } else {
-        loadAndDisplayTrailer(state.currentMovieIndex);
-    }
+    loadAndDisplayTrailer(state.currentMovieIndex);
 }
 
 // --- 初期化処理 ---
@@ -235,8 +360,8 @@ async function initializeApp() {
     // イベントリスナー
     nextButton.addEventListener('click', playNext);
     prevButton.addEventListener('click', playPrev);
-    netflixFilter.addEventListener('change', updateAndFetchMovies);
-    primeVideoFilter.addEventListener('change', updateAndFetchMovies);
+    netflixFilter.addEventListener('change', () => updateAndFetchMovies(true));
+    primeVideoFilter.addEventListener('change', () => updateAndFetchMovies(true));
     
     genreFilterToggle.addEventListener('click', () => {
         genreFilterList.classList.toggle('hidden');
@@ -250,7 +375,7 @@ async function initializeApp() {
             state.excludedGenres.delete(genreId);
         }
         localStorage.setItem('excludedGenres', JSON.stringify(Array.from(state.excludedGenres)));
-        updateAndFetchMovies();
+        updateAndFetchMovies(true);
     });
 
     movieInfoContainer.addEventListener('click', (event) => {
@@ -263,7 +388,7 @@ async function initializeApp() {
                 state.excludedGenres.add(genreId);
                 localStorage.setItem('excludedGenres', JSON.stringify(Array.from(state.excludedGenres)));
                 populateGenreFilterUI(); // チェックボックスのUIを更新
-                updateAndFetchMovies();
+                updateAndFetchMovies(true);
             }
         }
     });
@@ -286,7 +411,7 @@ async function initializeApp() {
         populateGenreFilterUI();
     }
 
-    updateAndFetchMovies();
+    updateAndFetchMovies(true);
 }
 
 initializeApp();

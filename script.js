@@ -337,7 +337,6 @@ let isPointerInside = true;
 let isManuallyHidden = false;
 let lastPointerX = null;
 let lastPointerY = null;
-let hasUnlockedSoundByInteraction = false;
 
 function showUI(force = false) {
     if (!uiLayer) return;
@@ -395,10 +394,6 @@ function setupAutoHideUI() {
 
     const registerInteraction = () => {
         if (!isWindowFocused || !isPointerInside) return;
-        if (!hasUnlockedSoundByInteraction && !state.isSoundEnabled) {
-            hasUnlockedSoundByInteraction = true;
-            setSoundEnabled(true);
-        }
         showUI();
     };
 
@@ -409,10 +404,6 @@ function setupAutoHideUI() {
         }
         lastPointerX = event.clientX;
         lastPointerY = event.clientY;
-        if (!hasUnlockedSoundByInteraction && !state.isSoundEnabled) {
-            hasUnlockedSoundByInteraction = true;
-            setSoundEnabled(true);
-        }
         showUI();
     }, { passive: true });
 
@@ -646,9 +637,6 @@ async function initializeApp() {
         soundToggleButton.addEventListener('click', () => {
             const nextEnabled = !state.isSoundEnabled;
             setSoundEnabled(nextEnabled);
-            if (nextEnabled) {
-                hasUnlockedSoundByInteraction = true;
-            }
         });
     }
     netflixFilter.addEventListener('change', () => updateAndFetchMovies(true));

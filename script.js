@@ -61,6 +61,7 @@ const state = {
     currentPage: 1,
     totalPages: 1,
     isFetchingMovies: false,
+    processedMovies: new Set(),
 };
 
 // --- DOM要素 ---
@@ -208,6 +209,22 @@ function handleYoutubeStateChange(event) {
     }
 }
 
+function persistProcessedMovies() {
+    localStorage.setItem('processedMovies', JSON.stringify(Array.from(state.processedMovies)));
+}
+
+function markCurrentMovieProcessed() {
+    const movie = state.movies[state.currentMovieIndex];
+    if (!movie) return;
+
+    if (!state.processedMovies.has(movie.id)) {
+        state.processedMovies.add(movie.id);
+        persistProcessedMovies();
+    }
+
+    state.movies.splice(state.currentMovieIndex, 1);
+}
+
 async function loadAndDisplayTrailer(index) {
     if (index < 0) {
         console.log('リストの先頭です。');
@@ -261,7 +278,9 @@ async function loadAndDisplayTrailer(index) {
     }
 
     console.log(`'${movie.title}' に再生可能な予告編が見つかりませんでした。次の映画を試します。`);
-    loadAndDisplayTrailer(index + 1);
+    const nextIndex = state.currentMovieIndex;
+    markCurrentMovieProcessed();
+    loadAndDisplayTrailer(nextIndex);
 }
 
 async function updateAndFetchMovies(resetPage = true) {
@@ -269,6 +288,7 @@ async function updateAndFetchMovies(resetPage = true) {
     state.isFetchingMovies = true;
 
     if (resetPage) {
+        markCurrentMovieProcessed();
         state.currentPage = 1;
         state.totalPages = 1;
         state.movies = [];
@@ -307,7 +327,10 @@ async function updateAndFetchMovies(resetPage = true) {
 
     if (movieData && movieData.results) {
         state.totalPages = movieData.total_pages || 1;
-        const newMovies = movieData.results.filter(movie => !state.ignoredMovies.has(movie.id));
+        const newMovies = movieData.results.filter(movie => {
+            const movieId = movie.id;
+            return !state.ignoredMovies.has(movieId) && !state.processedMovies.has(movieId);
+        });
 
         if (resetPage) {
             state.movies = newMovies;
@@ -334,11 +357,15 @@ async function updateAndFetchMovies(resetPage = true) {
 }
 
 function playNext() {
-    loadAndDisplayTrailer(state.currentMovieIndex + 1);
+    const nextIndex = state.currentMovieIndex;
+    markCurrentMovieProcessed();
+    loadAndDisplayTrailer(nextIndex);
 }
 
 function playPrev() {
-    loadAndDisplayTrailer(state.currentMovieIndex - 1);
+    const targetIndex = Math.max(state.currentMovieIndex - 1, 0);
+    markCurrentMovieProcessed();
+    loadAndDisplayTrailer(targetIndex);
 }
 
 function handleIgnoreClick() {
@@ -400,6 +427,9 @@ async function initializeApp() {
 
     const savedIgnored = JSON.parse(localStorage.getItem('ignoredMovies')) || [];
     state.ignoredMovies = new Set(savedIgnored);
+
+    const savedProcessed = JSON.parse(localStorage.getItem('processedMovies')) || [];
+    state.processedMovies = new Set(savedProcessed);
 
     const savedExcludedGenres = JSON.parse(localStorage.getItem('excludedGenres')) || []; // キーを戻す
     state.excludedGenres = new Set(savedExcludedGenres);

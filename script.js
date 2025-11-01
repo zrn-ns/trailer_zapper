@@ -81,7 +81,6 @@ const pauseButton = document.getElementById('pause-button');
 const immersiveStage = document.getElementById('immersive-stage');
 const fullscreenButton = document.getElementById('fullscreen-button');
 const uiToggleButton = document.getElementById('ui-toggle-button');
-const soundToggleButton = document.getElementById('sound-toggle-button');
 const playerShell = document.querySelector('.player-shell');
 
 // --- UI更新関数 ---
@@ -204,14 +203,8 @@ function showLoadingMessage(message) {
     }
 }
 
-function updateSoundButton() {
-    if (!soundToggleButton) return;
-    soundToggleButton.textContent = state.isSoundEnabled ? '音声オフ' : '音声オン';
-}
-
 function applySoundPreference() {
     if (!state.youtubePlayer || typeof state.youtubePlayer.isMuted !== 'function') {
-        updateSoundButton();
         return;
     }
     if (state.isSoundEnabled) {
@@ -220,7 +213,6 @@ function applySoundPreference() {
     } else {
         state.youtubePlayer.mute();
     }
-    updateSoundButton();
 }
 
 function setSoundEnabled(enabled) {
@@ -628,15 +620,10 @@ async function initializeApp() {
                 isManuallyHidden = true;
                 uiToggleButton.textContent = 'UI表示';
                 hideUI(true);
+                setSoundEnabled(true);
             }
         });
         uiToggleButton.textContent = isManuallyHidden ? 'UI表示' : 'UI非表示';
-    }
-    if (soundToggleButton) {
-        soundToggleButton.addEventListener('click', () => {
-            const nextEnabled = !state.isSoundEnabled;
-            setSoundEnabled(nextEnabled);
-        });
     }
     netflixFilter.addEventListener('change', () => updateAndFetchMovies(true));
     primeVideoFilter.addEventListener('change', () => updateAndFetchMovies(true));
@@ -684,8 +671,6 @@ async function initializeApp() {
 
     const savedExcludedGenres = JSON.parse(localStorage.getItem('excludedGenres')) || []; // キーを戻す
     state.excludedGenres = new Set(savedExcludedGenres);
-
-    updateSoundButton();
 
     // ジャンルリストを取得してからアプリのメインロジックを開始
     const genreData = await fetchFromTMDB('/genre/movie/list');

@@ -63,6 +63,7 @@ const state = {
     isFetchingMovies: false,
     processedMovies: new Set(),
     isPaused: false,
+    isSoundEnabled: false,
 };
 
 // --- DOM要素 ---
@@ -80,6 +81,7 @@ const pauseButton = document.getElementById('pause-button');
 const immersiveStage = document.getElementById('immersive-stage');
 const fullscreenButton = document.getElementById('fullscreen-button');
 const uiToggleButton = document.getElementById('ui-toggle-button');
+const soundToggleButton = document.getElementById('sound-toggle-button');
 const playerShell = document.querySelector('.player-shell');
 
 // --- UI更新関数 ---
@@ -147,13 +149,13 @@ async function displayTrailer(youtubeKey) {
             videoId: youtubeKey,
             playerVars: {
                 autoplay: 1,
-                mute: 1,
                 rel: 0,
+                mute: 1,
             },
             events: {
                 onReady: (event) => {
-                    event.target.mute();
                     event.target.playVideo();
+                    applySoundPreference();
                 },
                 onError: handleYoutubeError,
                 onStateChange: handleYoutubeStateChange,
@@ -164,10 +166,12 @@ async function displayTrailer(youtubeKey) {
             videoId: youtubeKey,
         });
         state.youtubePlayer.playVideo();
+        applySoundPreference();
     }
 
     state.isPaused = false;
     updatePauseButton();
+    applySoundPreference();
     return true;
 }
 
@@ -200,6 +204,31 @@ function showLoadingMessage(message) {
     }
 }
 
+function updateSoundButton() {
+    if (!soundToggleButton) return;
+    soundToggleButton.textContent = state.isSoundEnabled ? '音声オフ' : '音声オン';
+}
+
+function applySoundPreference() {
+    if (!state.youtubePlayer || typeof state.youtubePlayer.isMuted !== 'function') {
+        updateSoundButton();
+        return;
+    }
+    if (state.isSoundEnabled) {
+        state.youtubePlayer.unMute();
+        state.youtubePlayer.setVolume(100);
+    } else {
+        state.youtubePlayer.mute();
+    }
+    updateSoundButton();
+}
+
+function setSoundEnabled(enabled) {
+    state.isSoundEnabled = enabled;
+    localStorage.setItem('soundEnabled', JSON.stringify(enabled));
+    applySoundPreference();
+}
+
 function populateGenreFilterUI() {
     genreFilterList.innerHTML = '<p class="filter-explanation">チェックを入れたジャンルは表示されません。</p>'; // 説明文を動的に追加
     state.genres.forEach(genre => {
@@ -221,6 +250,7 @@ function handleYoutubeStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
         state.isPaused = false;
         updatePauseButton();
+        applySoundPreference();
     } else if (event.data === YT.PlayerState.PAUSED) {
         state.isPaused = true;
         updatePauseButton();
@@ -307,6 +337,7 @@ let isPointerInside = true;
 let isManuallyHidden = false;
 let lastPointerX = null;
 let lastPointerY = null;
+let hasUnlockedSoundByInteraction = false;
 
 function showUI(force = false) {
     if (!uiLayer) return;
@@ -364,6 +395,10 @@ function setupAutoHideUI() {
 
     const registerInteraction = () => {
         if (!isWindowFocused || !isPointerInside) return;
+        if (!hasUnlockedSoundByInteraction && !state.isSoundEnabled) {
+            hasUnlockedSoundByInteraction = true;
+            setSoundEnabled(true);
+        }
         showUI();
     };
 
@@ -374,6 +409,10 @@ function setupAutoHideUI() {
         }
         lastPointerX = event.clientX;
         lastPointerY = event.clientY;
+        if (!hasUnlockedSoundByInteraction && !state.isSoundEnabled) {
+            hasUnlockedSoundByInteraction = true;
+            setSoundEnabled(true);
+        }
         showUI();
     }, { passive: true });
 
@@ -392,7 +431,7 @@ function setupAutoHideUI() {
         requestAnimationFrame(monitorVisibility);
     };
 
-    showUI();
+    showUI(true);
     requestAnimationFrame(monitorVisibility);
 }
 
@@ -589,6 +628,29 @@ async function initializeApp() {
         updateFullscreenButton();
         document.addEventListener('fullscreenchange', handleFullscreenChange);
     }
+    if (uiToggleButton) {
+        uiToggleButton.addEventListener('click', () => {
+            if (isManuallyHidden) {
+                isManuallyHidden = false;
+                uiToggleButton.textContent = 'UI非表示';
+                showUI(true);
+            } else {
+                isManuallyHidden = true;
+                uiToggleButton.textContent = 'UI表示';
+                hideUI(true);
+            }
+        });
+        uiToggleButton.textContent = isManuallyHidden ? 'UI表示' : 'UI非表示';
+    }
+    if (soundToggleButton) {
+        soundToggleButton.addEventListener('click', () => {
+            const nextEnabled = !state.isSoundEnabled;
+            setSoundEnabled(nextEnabled);
+            if (nextEnabled) {
+                hasUnlockedSoundByInteraction = true;
+            }
+        });
+    }
     netflixFilter.addEventListener('change', () => updateAndFetchMovies(true));
     primeVideoFilter.addEventListener('change', () => updateAndFetchMovies(true));
     
@@ -636,6 +698,12 @@ async function initializeApp() {
     const savedExcludedGenres = JSON.parse(localStorage.getItem('excludedGenres')) || []; // キーを戻す
     state.excludedGenres = new Set(savedExcludedGenres);
 
+    const savedSoundPreference = localStorage.getItem('soundEnabled');
+    if (savedSoundPreference !== null) {
+        state.isSoundEnabled = JSON.parse(savedSoundPreference);
+    }
+    updateSoundButton();
+
     // ジャンルリストを取得してからアプリのメインロジックを開始
     const genreData = await fetchFromTMDB('/genre/movie/list');
     if (genreData && genreData.genres) {
@@ -648,16 +716,3 @@ async function initializeApp() {
 }
 
 initializeApp();
-    if (uiToggleButton) {
-        uiToggleButton.addEventListener('click', () => {
-            if (isManuallyHidden) {
-                isManuallyHidden = false;
-                uiToggleButton.textContent = 'UI非表示';
-                showUI(true);
-            } else {
-                isManuallyHidden = true;
-                uiToggleButton.textContent = 'UI表示';
-                hideUI(true);
-            }
-        });
-    }

@@ -398,6 +398,7 @@ function showUI(force = false) {
     if (isManuallyHidden && !force) return;
     if (!isUIVisible) {
         uiLayer.classList.remove('ui-hidden');
+        playerShell.classList.remove('vignette-hidden');
         isUIVisible = true;
     }
 }
@@ -408,6 +409,7 @@ function hideUI(force = false) {
     if (isManuallyHidden && !force) return;
     if (isUIVisible) {
         uiLayer.classList.add('ui-hidden');
+        playerShell.classList.add('vignette-hidden');
         isUIVisible = false;
     }
 }

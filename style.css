@@ -59,6 +59,35 @@ body {
     padding-bottom: clamp(32px, 5vh, 80px);
 }
 
+.ui-toggle-button {
+    position: absolute;
+    top: clamp(16px, 4vw, 32px);
+    right: clamp(16px, 4vw, 32px);
+    z-index: 3;
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(3, 8, 18, 0.6);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+}
+
+.ui-toggle-button:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.36);
+    transform: translateY(-1px);
+}
+
+#immersive-stage:fullscreen .ui-toggle-button {
+    top: clamp(12px, 3vw, 24px);
+    right: clamp(12px, 3vw, 24px);
+}
+
 .video-layer {
     --stage-padding: clamp(8px, 2vw, 24px);
     position: absolute;

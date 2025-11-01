@@ -502,7 +502,22 @@ body {
     box-shadow: none;
 }
 
-/* レスポンシブ */
+.tmdb-attribution {
+    margin-top: auto; /* Push to the bottom */
+    align-self: flex-end; /* Align to the right */
+    padding-top: 20px;
+}
+
+.tmdb-attribution img {
+    width: 100px; /* Adjust size as needed */
+    height: auto;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+}
+
+.tmdb-attribution img:hover {
+    opacity: 1;
+}
 @media (max-width: 1024px) {
     .hud {
         align-items: stretch;

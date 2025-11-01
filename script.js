@@ -151,6 +151,8 @@ async function displayTrailer(youtubeKey) {
         playerVars: {
             autoplay: 1,
             rel: 0,
+            controls: 0,
+            modestbranding: 1,
             mute: 1, // onReadyで音声設定を適用するため、最初はミュート
         },
         events: {

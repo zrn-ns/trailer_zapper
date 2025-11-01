@@ -369,7 +369,9 @@ function setupAutoHideUI() {
 
         immersiveStage.addEventListener('mouseleave', () => {
             isPointerInside = false;
-            hideUI();
+            if (state.isSoundEnabled) {
+                hideUI();
+            }
         });
     } else {
         window.addEventListener('mouseenter', () => {
@@ -379,7 +381,9 @@ function setupAutoHideUI() {
 
         window.addEventListener('mouseleave', () => {
             isPointerInside = false;
-            hideUI();
+            if (state.isSoundEnabled) {
+                hideUI();
+            }
         });
     }
 
@@ -403,11 +407,10 @@ function setupAutoHideUI() {
     });
 
     const monitorVisibility = () => {
-        if (
-            !isManuallyHidden &&
-            isUIVisible &&
-            (!isWindowFocused || !isPointerInside || performance.now() - lastUIInteraction >= UI_HIDE_DELAY)
-        ) {
+        const hideDueToFocus = (!isWindowFocused || !isPointerInside) && state.isSoundEnabled;
+        const hideDueToInactivity = state.isSoundEnabled && performance.now() - lastUIInteraction >= UI_HIDE_DELAY;
+
+        if (!isManuallyHidden && isUIVisible && (hideDueToFocus || hideDueToInactivity)) {
             hideUI();
         }
         requestAnimationFrame(monitorVisibility);

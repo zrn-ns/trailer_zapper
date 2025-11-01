@@ -290,6 +290,48 @@ function togglePause() {
     showUI();
 }
 
+function toggleUIVisibility() {
+    if (!uiToggleButton) return;
+    if (isManuallyHidden) {
+        isManuallyHidden = false;
+        uiToggleButton.textContent = 'UI非表示';
+        showUI(true);
+        setSoundEnabled(true);
+    } else {
+        isManuallyHidden = true;
+        uiToggleButton.textContent = 'UI表示';
+        hideUI(true);
+        setSoundEnabled(true);
+    }
+}
+
+function handleKeyboardShortcuts(event) {
+    if (!event) return;
+    const activeTag = document.activeElement && document.activeElement.tagName;
+    if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || document.activeElement?.isContentEditable) {
+        return;
+    }
+
+    switch (event.key) {
+        case ' ':
+            event.preventDefault();
+            togglePause();
+            break;
+        case 'f':
+        case 'F':
+            event.preventDefault();
+            toggleFullscreen();
+            break;
+        case 'h':
+        case 'H':
+            event.preventDefault();
+            toggleUIVisibility();
+            break;
+        default:
+            break;
+    }
+}
+
 function updateFullscreenButton() {
     if (!fullscreenButton) return;
     const active = document.fullscreenElement !== null;
@@ -405,6 +447,8 @@ function setupAutoHideUI() {
     ['mousedown', 'keydown', 'touchstart', 'wheel'].forEach(eventName => {
         document.addEventListener(eventName, registerInteraction, { passive: true });
     });
+
+    document.addEventListener('keydown', handleKeyboardShortcuts, { passive: false });
 
     const monitorVisibility = () => {
         const hideDueToFocus = (!isWindowFocused || !isPointerInside) && state.isSoundEnabled;

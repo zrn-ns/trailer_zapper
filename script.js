@@ -62,6 +62,7 @@ const state = {
     totalPages: 1,
     isFetchingMovies: false,
     processedMovies: new Set(),
+    isPaused: false,
 };
 
 // --- DOM要素 ---
@@ -74,6 +75,11 @@ const playerContainer = document.getElementById('player-container');
 const movieInfoContainer = document.getElementById('movie-info');
 const genreFilterToggle = document.getElementById('genre-filter-toggle');
 const genreFilterList = document.getElementById('genre-filter-list');
+const uiLayer = document.querySelector('.ui-layer');
+const pauseButton = document.getElementById('pause-button');
+const immersiveStage = document.getElementById('immersive-stage');
+const fullscreenButton = document.getElementById('fullscreen-button');
+const playerShell = document.querySelector('.player-shell');
 
 // --- UI更新関数 ---
 
@@ -159,6 +165,8 @@ async function displayTrailer(youtubeKey) {
         state.youtubePlayer.playVideo();
     }
 
+    state.isPaused = false;
+    updatePauseButton();
     return true;
 }
 
@@ -178,12 +186,17 @@ function displayMovieInfo(movie) {
             <button id="ignore-button" class="button">興味なし</button>
         </div>
     `;
+    showUI();
 }
 
 function showLoadingMessage(message) {
     destroyYoutubePlayer();
     playerContainer.innerHTML = `<p>${message}</p>`;
     movieInfoContainer.innerHTML = '';
+    if (pauseButton) {
+        state.isPaused = true;
+        updatePauseButton();
+    }
 }
 
 function populateGenreFilterUI() {
@@ -204,7 +217,13 @@ function handleYoutubeError(event) {
 }
 
 function handleYoutubeStateChange(event) {
-    if (event.data === YT.PlayerState.ENDED) {
+    if (event.data === YT.PlayerState.PLAYING) {
+        state.isPaused = false;
+        updatePauseButton();
+    } else if (event.data === YT.PlayerState.PAUSED) {
+        state.isPaused = true;
+        updatePauseButton();
+    } else if (event.data === YT.PlayerState.ENDED) {
         playNext();
     }
 }
@@ -223,6 +242,104 @@ function markCurrentMovieProcessed() {
     }
 
     state.movies.splice(state.currentMovieIndex, 1);
+}
+
+function updatePauseButton() {
+    if (!pauseButton) return;
+    const hasPlayer = !!state.youtubePlayer;
+    pauseButton.disabled = !hasPlayer;
+    const label = state.isPaused || !hasPlayer ? '再生' : '一時停止';
+    pauseButton.textContent = label;
+}
+
+function togglePause() {
+    if (!state.youtubePlayer || !pauseButton || typeof YT === 'undefined') return;
+    const playerState = state.youtubePlayer.getPlayerState?.();
+
+    if (playerState === YT.PlayerState.PAUSED || playerState === YT.PlayerState.CUED) {
+        state.youtubePlayer.playVideo();
+        state.isPaused = false;
+    } else {
+        state.youtubePlayer.pauseVideo();
+        state.isPaused = true;
+    }
+
+    updatePauseButton();
+    showUI();
+}
+
+function updateFullscreenButton() {
+    if (!fullscreenButton) return;
+    const active = document.fullscreenElement !== null;
+    fullscreenButton.textContent = active ? '全画面解除' : '全画面';
+}
+
+async function toggleFullscreen() {
+    if (!fullscreenButton) return;
+    const fullscreenTarget = immersiveStage || playerShell || document.documentElement;
+    try {
+        if (document.fullscreenElement) {
+            await document.exitFullscreen();
+        } else {
+            await fullscreenTarget.requestFullscreen();
+        }
+    } catch (error) {
+        console.warn('Fullscreen toggle failed:', error);
+    } finally {
+        updateFullscreenButton();
+        showUI();
+    }
+}
+
+function handleFullscreenChange() {
+    updateFullscreenButton();
+    showUI();
+}
+
+// --- UI表示制御 ---
+
+const UI_HIDE_DELAY = 1000; // ミリ秒
+let lastUIInteraction = performance.now();
+let isUIVisible = false;
+
+function showUI() {
+    if (!uiLayer) return;
+    lastUIInteraction = performance.now();
+    if (!isUIVisible) {
+        uiLayer.classList.remove('ui-hidden');
+        isUIVisible = true;
+    }
+}
+
+function hideUI() {
+    if (!uiLayer) return;
+    if (isUIVisible) {
+        uiLayer.classList.add('ui-hidden');
+        isUIVisible = false;
+    }
+}
+
+function setupAutoHideUI() {
+    if (!uiLayer) return;
+
+    const registerInteraction = () => {
+        showUI();
+    };
+
+    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'wheel']
+        .forEach(eventName => {
+            document.addEventListener(eventName, registerInteraction, { passive: true });
+        });
+
+    const monitorVisibility = () => {
+        if (isUIVisible && performance.now() - lastUIInteraction >= UI_HIDE_DELAY) {
+            hideUI();
+        }
+        requestAnimationFrame(monitorVisibility);
+    };
+
+    showUI();
+    requestAnimationFrame(monitorVisibility);
 }
 
 async function loadAndDisplayTrailer(index) {
@@ -374,12 +491,16 @@ async function updateAndFetchMovies(resetPage = true) {
 }
 
 function playNext() {
+    state.isPaused = true;
+    updatePauseButton();
     const nextIndex = state.currentMovieIndex;
     markCurrentMovieProcessed();
     loadAndDisplayTrailer(nextIndex);
 }
 
 function playPrev() {
+    state.isPaused = true;
+    updatePauseButton();
     const targetIndex = Math.max(state.currentMovieIndex - 1, 0);
     markCurrentMovieProcessed();
     loadAndDisplayTrailer(targetIndex);
@@ -404,6 +525,16 @@ async function initializeApp() {
     // イベントリスナー
     nextButton.addEventListener('click', playNext);
     prevButton.addEventListener('click', playPrev);
+    if (pauseButton) {
+        pauseButton.addEventListener('click', togglePause);
+        state.isPaused = true;
+        updatePauseButton();
+    }
+    if (fullscreenButton) {
+        fullscreenButton.addEventListener('click', toggleFullscreen);
+        updateFullscreenButton();
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+    }
     netflixFilter.addEventListener('change', () => updateAndFetchMovies(true));
     primeVideoFilter.addEventListener('change', () => updateAndFetchMovies(true));
     
@@ -458,6 +589,7 @@ async function initializeApp() {
         populateGenreFilterUI();
     }
 
+    setupAutoHideUI();
     updateAndFetchMovies(true);
 }
 

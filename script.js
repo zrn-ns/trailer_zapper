@@ -374,19 +374,13 @@ function handleFullscreenChange() {
 
 // --- UI表示制御 ---
 
-const UI_HIDE_DELAY = 1500; // ミリ秒
-let lastUIInteraction = performance.now();
-let isUIVisible = false;
-let isWindowFocused = document.hasFocus();
-let isPointerInside = true;
+let isUIVisible = true;
 let isManuallyHidden = false;
-let lastPointerX = null;
-let lastPointerY = null;
 
 function showUI(force = false) {
     if (!uiLayer) return;
+    if (!state.hasStarted && !force) return;
     if (isManuallyHidden && !force) return;
-    lastUIInteraction = performance.now();
     if (!isUIVisible) {
         uiLayer.classList.remove('ui-hidden');
         isUIVisible = true;
@@ -395,6 +389,7 @@ function showUI(force = false) {
 
 function hideUI(force = false) {
     if (!uiLayer) return;
+    if (!state.hasStarted && !force) return;
     if (isManuallyHidden && !force) return;
     if (isUIVisible) {
         uiLayer.classList.add('ui-hidden');
@@ -402,80 +397,8 @@ function hideUI(force = false) {
     }
 }
 
-function setupAutoHideUI() {
-    if (!uiLayer) return;
-
-    window.addEventListener('focus', () => {
-        isWindowFocused = true;
-        showUI();
-    });
-
-    window.addEventListener('blur', () => {
-        isWindowFocused = false;
-        hideUI();
-    });
-
-    if (immersiveStage) {
-        immersiveStage.addEventListener('mouseenter', () => {
-            isPointerInside = true;
-            showUI();
-        });
-
-        immersiveStage.addEventListener('mouseleave', () => {
-            isPointerInside = false;
-            if (state.isSoundEnabled) {
-                hideUI();
-            }
-        });
-    } else {
-        window.addEventListener('mouseenter', () => {
-            isPointerInside = true;
-            showUI();
-        });
-
-        window.addEventListener('mouseleave', () => {
-            isPointerInside = false;
-            if (state.isSoundEnabled) {
-                hideUI();
-            }
-        });
-    }
-
-    const registerInteraction = () => {
-        if (!state.hasStarted || !isWindowFocused || !isPointerInside) return;
-        showUI();
-    };
-
-    document.addEventListener('mousemove', (event) => {
-        if (!state.hasStarted || !isWindowFocused || !isPointerInside) return;
-        if (lastPointerX === event.clientX && lastPointerY === event.clientY) {
-            return;
-        }
-        lastPointerX = event.clientX;
-        lastPointerY = event.clientY;
-        showUI();
-    }, { passive: true });
-
-    ['mousedown', 'keydown', 'touchstart', 'wheel'].forEach(eventName => {
-        document.addEventListener(eventName, registerInteraction, { passive: true });
-    });
-
+function setupUIControls() {
     document.addEventListener('keydown', handleKeyboardShortcuts, { passive: false });
-
-    const monitorVisibility = () => {
-        const hideDueToFocus = (!isWindowFocused || !isPointerInside) && state.isSoundEnabled;
-        const hideDueToInactivity = state.isSoundEnabled && performance.now() - lastUIInteraction >= UI_HIDE_DELAY;
-
-        if (!isManuallyHidden && isUIVisible && (hideDueToFocus || hideDueToInactivity)) {
-            hideUI();
-        }
-        requestAnimationFrame(monitorVisibility);
-    };
-
-    if (state.hasStarted) {
-        showUI(true);
-    }
-    requestAnimationFrame(monitorVisibility);
 }
 
 async function loadAndDisplayTrailer(index) {
@@ -740,7 +663,7 @@ async function initializeApp() {
         populateGenreFilterUI();
     }
 
-    setupAutoHideUI();
+    setupUIControls();
     if (startModal && startButton) {
         startModal.classList.remove('hidden');
         startButton.addEventListener('click', () => {

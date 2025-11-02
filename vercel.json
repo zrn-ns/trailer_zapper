@@ -1,6 +1,6 @@
 {
   "buildCommand": "echo 'No build required'",
-  "outputDirectory": "public",
+  "outputDirectory": "client",
   "rewrites": [
     {
       "source": "/api/tmdb/:path*",

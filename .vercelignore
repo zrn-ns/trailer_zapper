@@ -1,6 +1,6 @@
 # ローカル開発用ファイル
-client/
 server/
+public/
 
 # 環境変数ファイル
 .env

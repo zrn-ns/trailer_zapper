@@ -2,7 +2,10 @@ console.log('Trailer Zapperのスクリプトが読み込まれました。');
 
 // --- API設定 ---
 // APIキーはプロキシサーバー経由で安全に管理されます
-const API_BASE_URL = 'http://localhost:3000/api/tmdb';
+// 本番環境では相対パス、ローカル環境ではlocalhost:3000を使用
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:3000/api/tmdb'
+  : '/api/tmdb';
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 const REGION = 'JP';
 

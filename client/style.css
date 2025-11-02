@@ -633,15 +633,27 @@ body {
     z-index: 101;
 }
 
+.cinema-ornament {
+    color: var(--accent);
+    font-size: 1.2rem;
+    opacity: 0.6;
+    letter-spacing: 0.3em;
+}
+
 .start-modal__content h2 {
     margin: 0;
     font-size: clamp(1.8rem, 3vw, 2.4rem);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    color: var(--text-primary);
 }
 
 .start-modal__content p {
     margin: 0;
     color: var(--text-secondary);
-    line-height: 1.6;
+    line-height: 1.8;
+    font-size: clamp(0.95rem, 2vw, 1.1rem);
+    letter-spacing: 0.05em;
 }
 
 .primary-button {

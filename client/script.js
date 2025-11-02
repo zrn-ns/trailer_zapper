@@ -134,10 +134,13 @@ function detectIOSSafari() {
 // アプリ起動時にiOS Safariを検出
 state.isIOSSafari = detectIOSSafari();
 if (state.isIOSSafari) {
-    console.log('iOS Safari検出: 動画は常にミュートで再生されます');
+    console.log('iOS Safari検出: 上映開始時に音声ONで再生します');
+    // iOS Safariの場合、デフォルトで音声をONにする
+    state.iosUserWantsSound = true;
     // iOS Safari用のミュート解除ボタンを表示
     if (iosUnmuteButton) {
         iosUnmuteButton.style.display = 'inline-block';
+        iosUnmuteButton.textContent = '🔊 音声OFF'; // 初期状態は音声ON
     }
 }
 
@@ -220,11 +223,16 @@ async function displayTrailer(youtubeKey) {
         },
         events: {
             onReady: (event) => {
-                // iOS Safariでは、ミュートされていない動画の自動再生は許可されない
-                // そのため、強制的にミュートしてから再生開始
                 if (state.isIOSSafari) {
-                    console.log('iOS Safari: 強制ミュートで再生開始');
-                    event.target.mute();
+                    console.log('iOS Safari: ユーザー設定に基づいて再生開始');
+                    if (state.iosUserWantsSound) {
+                        // ユーザーが音声ONを希望 - ミュート解除を試みる
+                        event.target.unMute();
+                        event.target.setVolume(100);
+                    } else {
+                        // ユーザーが音声OFFを希望 - 強制ミュート
+                        event.target.mute();
+                    }
                     event.target.playVideo();
                 } else {
                     // 非iOS Safariでは通常通り音声設定を適用

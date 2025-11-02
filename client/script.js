@@ -351,12 +351,12 @@ function toggleUIVisibility() {
 
     if (isManuallyHidden) {
         isManuallyHidden = false;
-        uiToggleButton.textContent = 'UI非表示';
+        uiToggleButton.textContent = '◉';
         showUI(true);
         setSoundEnabled(true);
     } else {
         isManuallyHidden = true;
-        uiToggleButton.textContent = 'UI表示';
+        uiToggleButton.textContent = '○';
         hideUI(true);
         setSoundEnabled(true);
     }
@@ -464,9 +464,9 @@ function showUI(force = false) {
             aboutButton.classList.remove('ui-hidden');
         }
         isUIVisible = true;
-        // ボタンのテキストを更新
+        // ボタンのアイコンを更新
         if (uiToggleButton) {
-            uiToggleButton.textContent = 'UI非表示';
+            uiToggleButton.textContent = '◉';
         }
     }
 }
@@ -487,9 +487,9 @@ function hideUI(force = false) {
             aboutButton.classList.add('ui-hidden');
         }
         isUIVisible = false;
-        // ボタンのテキストを更新
+        // ボタンのアイコンを更新
         if (uiToggleButton) {
-            uiToggleButton.textContent = 'UI表示';
+            uiToggleButton.textContent = '○';
         }
     }
 }
@@ -760,16 +760,16 @@ async function initializeApp() {
         uiToggleButton.addEventListener('click', () => {
             if (isManuallyHidden) {
                 isManuallyHidden = false;
-                uiToggleButton.textContent = 'UI非表示';
+                uiToggleButton.textContent = '◉';
                 showUI(true);
             } else {
                 isManuallyHidden = true;
-                uiToggleButton.textContent = 'UI表示';
+                uiToggleButton.textContent = '○';
                 hideUI(true);
                 setSoundEnabled(true);
             }
         });
-        uiToggleButton.textContent = isManuallyHidden ? 'UI表示' : 'UI非表示';
+        uiToggleButton.textContent = isManuallyHidden ? '○' : '◉';
     }
     netflixFilter.addEventListener('change', () => updateAndFetchMovies(true));
     primeVideoFilter.addEventListener('change', () => updateAndFetchMovies(true));
@@ -929,12 +929,12 @@ async function initializeApp() {
                 if (shouldShowUI) {
                     isManuallyHidden = false;
                     if (uiToggleButton) {
-                        uiToggleButton.textContent = 'UI非表示';
+                        uiToggleButton.textContent = '◉';
                     }
                 } else {
                     isManuallyHidden = true;
                     if (uiToggleButton) {
-                        uiToggleButton.textContent = 'UI表示';
+                        uiToggleButton.textContent = '○';
                     }
                 }
 

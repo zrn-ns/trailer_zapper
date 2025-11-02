@@ -61,23 +61,28 @@ body {
     top: clamp(16px, 4vw, 32px);
     right: clamp(16px, 4vw, 32px);
     z-index: 3;
-    padding: 10px 18px;
-    border-radius: 999px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
     border: 1px solid rgba(255, 255, 255, 0.18);
-    background: rgba(3, 8, 18, 0.6);
+    background: rgba(3, 8, 18, 0.7);
     color: var(--text-primary);
-    font-size: 0.9rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: 1.4rem;
     cursor: pointer;
     backdrop-filter: blur(12px);
-    transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+    transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    line-height: 1;
 }
 
 .ui-toggle-button:hover {
     background: rgba(255, 255, 255, 0.18);
     border-color: rgba(255, 255, 255, 0.36);
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 #immersive-stage:fullscreen .ui-toggle-button {
@@ -983,10 +988,9 @@ body {
     .ui-toggle-button {
         top: 8px;
         right: 8px;
-        padding: 6px 12px;
-        font-size: 0.75rem;
-        min-width: 40px;
-        min-height: 40px;
+        width: 42px;
+        height: 42px;
+        font-size: 1.2rem;
     }
 
     .about-button {

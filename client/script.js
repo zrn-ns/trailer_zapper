@@ -389,6 +389,8 @@ function handleFullscreenChange() {
 
 let isUIVisible = true;
 let isManuallyHidden = false;
+let uiTimeout = null;
+let isInteracting = false;
 
 function showUI(force = false) {
     if (!uiLayer) return;
@@ -396,7 +398,6 @@ function showUI(force = false) {
     if (isManuallyHidden && !force) return;
     if (!isUIVisible) {
         uiLayer.classList.remove('ui-hidden');
-        playerShell.classList.remove('vignette-hidden');
         isUIVisible = true;
     }
 }
@@ -405,15 +406,63 @@ function hideUI(force = false) {
     if (!uiLayer) return;
     if (!state.hasStarted && !force) return;
     if (isManuallyHidden && !force) return;
+    if (isInteracting && !force) return; // インタラクション中は非表示にしない
     if (isUIVisible) {
         uiLayer.classList.add('ui-hidden');
-        playerShell.classList.add('vignette-hidden');
         isUIVisible = false;
     }
 }
 
 function setupUIControls() {
     document.addEventListener('keydown', handleKeyboardShortcuts, { passive: false });
+
+    // マウス移動でUIを表示し、3秒後に自動非表示
+    document.addEventListener('mousemove', () => {
+        if (!state.hasStarted) return;
+        if (isManuallyHidden) return;
+        showUI();
+
+        // 既存のタイムアウトをクリア
+        if (uiTimeout) {
+            clearTimeout(uiTimeout);
+        }
+
+        // 3秒後にUIを非表示
+        uiTimeout = setTimeout(() => {
+            if (!isManuallyHidden && !isInteracting) {
+                hideUI();
+            }
+        }, 3000);
+    });
+
+    // インタラクティブ要素のホバー時はUIを維持
+    const interactiveElements = document.querySelectorAll(
+        'button, input, label, .control-panel, .info-panel, #genre-filter-list'
+    );
+
+    interactiveElements.forEach(element => {
+        element.addEventListener('mouseenter', () => {
+            isInteracting = true;
+            if (uiTimeout) {
+                clearTimeout(uiTimeout);
+            }
+        });
+
+        element.addEventListener('mouseleave', () => {
+            isInteracting = false;
+            // マウスが離れたらタイムアウトを再開
+            if (!isManuallyHidden && state.hasStarted) {
+                if (uiTimeout) {
+                    clearTimeout(uiTimeout);
+                }
+                uiTimeout = setTimeout(() => {
+                    if (!isManuallyHidden && !isInteracting) {
+                        hideUI();
+                    }
+                }, 3000);
+            }
+        });
+    });
 }
 
 async function loadAndDisplayTrailer(index) {

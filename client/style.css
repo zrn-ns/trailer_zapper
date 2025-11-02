@@ -437,19 +437,44 @@ body {
     width: min(640px, 100%);
 }
 
+/* 暗転オーバーレイ（映画館の照明が落ちる演出） */
+.dimming-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    pointer-events: none;
+    z-index: 99;
+    animation: dim-lights 1.5s ease-out forwards;
+}
+
+/* 暗転アニメーション用キーフレーム */
+@keyframes dim-lights {
+    0% {
+        background: rgba(0, 0, 0, 0);
+    }
+    100% {
+        background: rgba(0, 0, 0, 0.85);
+    }
+}
+
+/* スタートモーダル */
 .start-modal {
     position: fixed;
     inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.65);
-    backdrop-filter: blur(10px);
+    background: transparent;
     z-index: 100;
+    transition: opacity 0.5s ease-in;
 }
 
 .start-modal.hidden {
     display: none;
+}
+
+.start-modal.fade-out {
+    opacity: 0;
 }
 
 .start-modal__content {
@@ -463,6 +488,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    position: relative;
+    z-index: 101;
 }
 
 .start-modal__content h2 {
@@ -592,5 +619,17 @@ body {
 
     .controls {
         width: 100%;
+    }
+}
+
+/* アクセシビリティ: 動きを抑えたい設定のユーザー向け */
+@media (prefers-reduced-motion: reduce) {
+    .dimming-overlay {
+        animation: none !important;
+        background: rgba(0, 0, 0, 0.85);
+    }
+
+    .start-modal {
+        transition: none !important;
     }
 }

@@ -81,6 +81,7 @@ const uiToggleButton = document.getElementById('ui-toggle-button');
 const playerShell = document.querySelector('.player-shell');
 const startModal = document.getElementById('start-modal');
 const startButton = document.getElementById('start-button');
+const dimmingOverlay = document.getElementById('dimming-overlay');
 
 // --- UI更新関数 ---
 
@@ -695,19 +696,34 @@ async function initializeApp() {
     }
 
     setupUIControls();
-    if (startModal && startButton) {
+    if (startModal && startButton && dimmingOverlay) {
         startModal.classList.remove('hidden');
         startButton.addEventListener('click', () => {
             startButton.disabled = true;
-            state.hasStarted = true;
-            startModal.classList.add('hidden');
-            setSoundEnabled(true);
-            isManuallyHidden = true;
-            if (uiToggleButton) {
-                uiToggleButton.textContent = 'UI表示';
-            }
-            hideUI(true);
-            updateAndFetchMovies(true);
+
+            // 映画館のような暗転演出を開始
+            startModal.classList.add('fade-out');
+            dimmingOverlay.style.animation = 'dim-lights 0.5s ease-in forwards';
+            dimmingOverlay.style.background = 'rgba(0, 0, 0, 1)';
+
+            // 暗転アニメーション完了後、アプリケーションを開始
+            setTimeout(() => {
+                state.hasStarted = true;
+                startModal.classList.add('hidden');
+                setSoundEnabled(true);
+                isManuallyHidden = true;
+                if (uiToggleButton) {
+                    uiToggleButton.textContent = 'UI表示';
+                }
+                hideUI(true);
+                updateAndFetchMovies(true);
+
+                // オーバーレイをフェードアウトして映画を表示
+                setTimeout(() => {
+                    dimmingOverlay.style.transition = 'opacity 0.8s ease-out';
+                    dimmingOverlay.style.opacity = '0';
+                }, 300);
+            }, 500);
         }, { once: true });
     } else {
         state.hasStarted = true;

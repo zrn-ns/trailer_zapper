@@ -85,6 +85,37 @@ body {
     right: clamp(12px, 3vw, 24px);
 }
 
+.about-button {
+    position: absolute;
+    top: clamp(16px, 4vw, 32px);
+    left: clamp(16px, 4vw, 32px);
+    z-index: 3;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(3, 8, 18, 0.6);
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.about-button:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.36);
+    transform: translateY(-1px);
+}
+
+#immersive-stage:fullscreen .about-button {
+    top: clamp(12px, 3vw, 24px);
+    left: clamp(12px, 3vw, 24px);
+}
+
 .video-layer {
     --stage-padding: clamp(8px, 2vw, 24px);
     position: absolute;
@@ -451,6 +482,115 @@ body {
     accent-color: var(--accent);
 }
 
+/* --- About Modal --- */
+.about-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.about-modal.hidden {
+    display: none;
+}
+
+.about-modal__backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+.about-modal__content {
+    position: relative;
+    background: var(--bg-panel-strong);
+    border: 1px solid var(--border-glow);
+    border-radius: 24px;
+    width: min(600px, 90vw);
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    z-index: 1001;
+}
+
+.about-modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--border-glow);
+}
+
+.about-modal__header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+}
+
+.about-modal__header .ghost-button {
+    padding: 8px 16px;
+    font-size: 1.2rem;
+    min-width: auto;
+}
+
+.about-modal__body {
+    padding: 24px 28px;
+    overflow-y: auto;
+}
+
+.about-section {
+    margin-bottom: 28px;
+}
+
+.about-section:last-child {
+    margin-bottom: 0;
+}
+
+.about-section h4 {
+    margin: 0 0 12px 0;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.about-section p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.about-section a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    transition: border-color 0.3s ease;
+}
+
+.about-section a:hover {
+    border-bottom-color: var(--accent);
+}
+
+.tmdb-logo {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.tmdb-logo img {
+    width: 100px;
+    height: auto;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.tmdb-logo img:hover {
+    opacity: 1;
+}
+
 .filter-explanation {
     grid-column: 1 / -1;
     font-size: 0.85rem;
@@ -711,50 +851,6 @@ body {
     box-shadow: none;
 }
 
-.tmdb-attribution {
-    margin-top: auto; /* Push to the bottom */
-    align-self: flex-end; /* Align to the right */
-    padding-top: 20px;
-}
-
-.tmdb-attribution img {
-    width: 100px; /* Adjust size as needed */
-    height: auto;
-    opacity: 0.6;
-    transition: opacity 0.3s ease;
-}
-
-.tmdb-attribution img:hover {
-    opacity: 1;
-}
-
-.audio-attribution {
-    align-self: flex-end;
-    padding-top: 8px;
-}
-
-.audio-attribution p {
-    margin: 0;
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    opacity: 0.6;
-    transition: opacity 0.3s ease;
-}
-
-.audio-attribution a {
-    color: var(--text-secondary);
-    text-decoration: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    transition: border-color 0.3s ease;
-}
-
-.audio-attribution a:hover {
-    border-bottom-color: rgba(255, 255, 255, 0.6);
-}
-
-.audio-attribution:hover p {
-    opacity: 1;
-}
 /* タブレット用スタイル（削除 - 721-1024pxは下記の専用ルールを使用） */
 
 /* タブレット・モバイル横画面用（721px - 1024px） */
@@ -885,13 +981,14 @@ body {
         min-height: 40px;
     }
 
-    .tmdb-attribution {
-        padding-top: 6px;
+    .about-button {
+        top: 8px;
+        left: 8px;
+        width: 40px;
+        height: 40px;
+        font-size: 1.3rem;
     }
 
-    .tmdb-attribution img {
-        width: 70px;
-    }
 }
 
 /* モバイル縦画面用（720px以下） */
@@ -930,6 +1027,14 @@ body {
 
     .ui-toggle-button {
         display: none; /* 縦レイアウトではUIを常に表示するためボタン不要 */
+    }
+
+    .about-button {
+        position: fixed;
+        top: max(12px, env(safe-area-inset-top));
+        left: max(12px, env(safe-area-inset-left));
+        width: 44px;
+        height: 44px;
     }
 
     .hero-header {
@@ -1051,13 +1156,6 @@ body {
         font-size: 0.9rem;
     }
 
-    .tmdb-attribution {
-        padding-top: 12px;
-    }
-
-    .tmdb-attribution img {
-        width: 80px;
-    }
 }
 
 /* アクセシビリティ: 動きを抑えたい設定のユーザー向け */

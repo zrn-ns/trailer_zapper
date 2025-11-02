@@ -9,6 +9,7 @@
 <body>
     <div id="immersive-stage" class="immersive-stage">
         <button id="ui-toggle-button" class="ui-toggle-button">UI非表示</button>
+        <button id="about-button" class="about-button">ⓘ</button>
         <div class="video-layer">
             <div class="player-shell">
                 <div id="player-container" class="player-screen"></div>
@@ -69,14 +70,6 @@
                 <button id="fullscreen-button" class="primary-button">全画面</button>
                 <button id="next-button" class="primary-button">次へ</button>
             </div>
-            <div class="tmdb-attribution">
-                <a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer">
-                    <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_1-5bdc75aaebeb75dc7ae79426ddd9be3b2be1e342510f8202baf6bffa71d7f5c4.svg" alt="The Movie Database (TMDB)">
-                </a>
-            </div>
-            <div class="audio-attribution">
-                <p>効果音: <a href="https://otologic.jp" target="_blank" rel="noopener noreferrer">OtoLogic</a> (CC BY 4.0)</p>
-            </div>
         </div>
     </div>
     <!-- 映画館スクリーン背景 -->
@@ -104,6 +97,43 @@
                 <button id="genre-filter-close" class="ghost-button" aria-label="閉じる">✕</button>
             </div>
             <div id="genre-filter-list" class="genre-filter-modal__list"></div>
+        </div>
+    </div>
+
+    <!-- 情報モーダル -->
+    <div id="about-modal" class="about-modal hidden">
+        <div class="about-modal__backdrop"></div>
+        <div class="about-modal__content">
+            <div class="about-modal__header">
+                <h3>アプリケーション情報</h3>
+                <button id="about-modal-close" class="ghost-button" aria-label="閉じる">✕</button>
+            </div>
+            <div class="about-modal__body">
+                <section class="about-section">
+                    <h4>データ提供</h4>
+                    <div class="tmdb-logo">
+                        <a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer">
+                            <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_1-5bdc75aaebeb75dc7ae79426ddd9be3b2be1e342510f8202baf6bffa71d7f5c4.svg" alt="The Movie Database (TMDB)">
+                        </a>
+                        <p>このアプリケーションは<a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer">TMDB API</a>を使用していますが、TMDBによって承認または認定されたものではありません。</p>
+                    </div>
+                </section>
+
+                <section class="about-section">
+                    <h4>効果音</h4>
+                    <p><a href="https://otologic.jp" target="_blank" rel="noopener noreferrer">OtoLogic</a> (CC BY 4.0)</p>
+                </section>
+
+                <section class="about-section">
+                    <h4>作者</h4>
+                    <p>@zrn_ns</p>
+                </section>
+
+                <section class="about-section">
+                    <h4>ソースコード</h4>
+                    <p><a href="https://github.com/zrn-ns/trailer_zapper" target="_blank" rel="noopener noreferrer">GitHub</a></p>
+                </section>
+            </div>
         </div>
     </div>
 

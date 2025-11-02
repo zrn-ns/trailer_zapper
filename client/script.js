@@ -78,6 +78,9 @@ const genreFilterToggle = document.getElementById('genre-filter-toggle');
 const genreFilterModal = document.getElementById('genre-filter-modal');
 const genreFilterList = document.getElementById('genre-filter-list');
 const genreFilterClose = document.getElementById('genre-filter-close');
+const aboutButton = document.getElementById('about-button');
+const aboutModal = document.getElementById('about-modal');
+const aboutModalClose = document.getElementById('about-modal-close');
 const uiLayer = document.querySelector('.ui-layer');
 const pauseButton = document.getElementById('pause-button');
 const immersiveStage = document.getElementById('immersive-stage');
@@ -509,7 +512,7 @@ function setupUIControls() {
 
     // インタラクティブ要素のホバー時はUIを維持
     const interactiveElements = document.querySelectorAll(
-        'button, input, label, .control-panel, .info-panel, .genre-filter-modal'
+        'button, input, label, .control-panel, .info-panel, .genre-filter-modal, .about-modal'
     );
 
     interactiveElements.forEach(element => {
@@ -791,6 +794,34 @@ async function initializeApp() {
     genreFilterModal.addEventListener('click', (event) => {
         if (event.target === genreFilterModal || event.target.classList.contains('genre-filter-modal__backdrop')) {
             genreFilterModal.classList.add('hidden');
+        }
+    });
+
+    // 情報モーダルの開閉
+    aboutButton.addEventListener('click', () => {
+        aboutModal.classList.remove('hidden');
+    });
+
+    aboutModalClose.addEventListener('click', () => {
+        aboutModal.classList.add('hidden');
+    });
+
+    // バックドロップクリックで情報モーダルを閉じる
+    aboutModal.addEventListener('click', (event) => {
+        if (event.target === aboutModal || event.target.classList.contains('about-modal__backdrop')) {
+            aboutModal.classList.add('hidden');
+        }
+    });
+
+    // Escキーでモーダルを閉じる
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            if (!genreFilterModal.classList.contains('hidden')) {
+                genreFilterModal.classList.add('hidden');
+            }
+            if (!aboutModal.classList.contains('hidden')) {
+                aboutModal.classList.add('hidden');
+            }
         }
     });
 

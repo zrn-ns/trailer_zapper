@@ -653,7 +653,10 @@ function hideUI(force = false) {
 function setupUIControls() {
     // iOS Safari用のフローティングボタン（音声ON / 再生再開）
     if (iosUnmuteButton) {
-        iosUnmuteButton.addEventListener('click', () => {
+        iosUnmuteButton.addEventListener('click', (event) => {
+            // イベント伝播を停止（親要素のクリックイベントを発火させない）
+            event.stopPropagation();
+
             const mode = iosUnmuteButton.dataset.mode || 'unmute';
 
             if (mode === 'unmute') {

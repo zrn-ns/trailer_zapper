@@ -224,15 +224,10 @@ async function displayTrailer(youtubeKey) {
         events: {
             onReady: (event) => {
                 if (state.isIOSSafari) {
-                    console.log('iOS Safari: ユーザー設定に基づいて再生開始');
-                    if (state.iosUserWantsSound) {
-                        // ユーザーが音声ONを希望 - ミュート解除を試みる
-                        event.target.unMute();
-                        event.target.setVolume(100);
-                    } else {
-                        // ユーザーが音声OFFを希望 - 強制ミュート
-                        event.target.mute();
-                    }
+                    // iOS Safariでは、自動再生ポリシーを満たすため必ずミュートで開始
+                    // 再生開始後（onStateChangeでPLAYING状態）に音声設定が適用される
+                    console.log('iOS Safari: ミュートで再生開始（再生後に音声設定適用）');
+                    event.target.mute();
                     event.target.playVideo();
                 } else {
                     // 非iOS Safariでは通常通り音声設定を適用

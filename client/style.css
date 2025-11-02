@@ -727,6 +727,34 @@ body {
 .tmdb-attribution img:hover {
     opacity: 1;
 }
+
+.audio-attribution {
+    align-self: flex-end;
+    padding-top: 8px;
+}
+
+.audio-attribution p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+}
+
+.audio-attribution a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    transition: border-color 0.3s ease;
+}
+
+.audio-attribution a:hover {
+    border-bottom-color: rgba(255, 255, 255, 0.6);
+}
+
+.audio-attribution:hover p {
+    opacity: 1;
+}
 /* タブレット用スタイル（削除 - 721-1024pxは下記の専用ルールを使用） */
 
 /* タブレット・モバイル横画面用（721px - 1024px） */

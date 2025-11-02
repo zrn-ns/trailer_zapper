@@ -467,8 +467,8 @@ body {
     background-position: center;
     background-repeat: no-repeat;
     filter: brightness(1);
-    transition: filter 2s cubic-bezier(0.4, 0, 0.2, 1);
-    animation: theater-lights-dim 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    transition: filter 4s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: theater-lights-dim 4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 /* 映画館の照明が落ちるアニメーション */
@@ -488,7 +488,7 @@ body {
     background: rgba(0, 0, 0, 0);
     pointer-events: none;
     z-index: 99;
-    animation: dim-lights 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: dim-lights 4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 /* 暗転アニメーション用キーフレーム */

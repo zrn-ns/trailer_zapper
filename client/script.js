@@ -962,7 +962,14 @@ async function initializeApp() {
     setupUIControls();
     if (startModal && startButton && dimmingOverlay && theaterScreen) {
         startModal.classList.remove('hidden');
-        startButton.addEventListener('click', () => {
+
+        // 上映開始処理を共通関数として定義
+        const startScreening = () => {
+            // 重複クリック防止: 既に処理中の場合は早期リターン
+            if (startButton.disabled) {
+                return;
+            }
+
             startButton.disabled = true;
 
             // ブザー音を再生（ユーザーインタラクション直後なので再生可能）
@@ -1035,6 +1042,18 @@ async function initializeApp() {
                 }
                 updateAndFetchMovies(true);
             }, 500);
+        };
+
+        // モーダル全体のクリックイベント（画面全体をクリック可能に）
+        startModal.addEventListener('click', () => {
+            startScreening();
+        }, { once: true });
+
+        // ボタンのクリックイベント
+        startButton.addEventListener('click', (event) => {
+            // イベント伝播を停止（親要素のクリックイベントを発火させない）
+            event.stopPropagation();
+            startScreening();
         }, { once: true });
     } else {
         state.hasStarted = true;

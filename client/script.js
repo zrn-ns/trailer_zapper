@@ -75,6 +75,8 @@ const state = {
     isRetrying: false,
     isIOSSafari: false, // iOS Safari検出フラグ
     iosUserWantsSound: false, // iOS Safariでユーザーが音声をリクエストしたかどうか
+    firstTrailerKey: null, // iOS Safari用: 最初の動画のYouTubeキー（事前取得）
+    firstMovie: null, // iOS Safari用: 最初の動画データ（事前取得）
 };
 
 // --- DOM要素 ---
@@ -184,7 +186,7 @@ function loadYoutubeApiScript() {
     return state.youtubeApiPromise;
 }
 
-async function displayTrailer(youtubeKey) {
+async function displayTrailer(youtubeKey, allowUnmuted = false) {
     try {
         await loadYoutubeApiScript();
     } catch (error) {
@@ -224,10 +226,17 @@ async function displayTrailer(youtubeKey) {
         events: {
             onReady: (event) => {
                 if (state.isIOSSafari) {
-                    // iOS Safariでは、自動再生ポリシーを満たすため必ずミュートで開始
-                    // 再生開始後（onStateChangeでPLAYING状態）に音声設定が適用される
-                    console.log('iOS Safari: ミュートで再生開始（再生後に音声設定適用）');
-                    event.target.mute();
+                    if (allowUnmuted) {
+                        // ユーザージェスチャーコンテキスト内でallowUnmuted=trueの場合、音声ONで再生
+                        console.log('iOS Safari: ユーザージェスチャー内で音声ONで再生開始');
+                        event.target.unMute();
+                        event.target.setVolume(100);
+                        state.iosUserWantsSound = true; // 音声ONフラグを設定
+                    } else {
+                        // 通常はミュートで開始
+                        console.log('iOS Safari: ミュートで再生開始');
+                        event.target.mute();
+                    }
                     event.target.playVideo();
                 } else {
                     // 非iOS Safariでは通常通り音声設定を適用
@@ -1041,6 +1050,52 @@ async function initializeApp() {
     }
 
     setupUIControls();
+
+    // iOS Safari用: 最初の動画データとYouTubeキーを事前取得
+    if (state.isIOSSafari) {
+        console.log('iOS Safari検出: 最初の動画データを事前取得します...');
+        try {
+            // 最初のページの映画データを取得
+            const selectedProviders = [];
+            if (netflixFilter.checked) selectedProviders.push(PROVIDER_IDS.NETFLIX);
+            if (primeVideoFilter.checked) selectedProviders.push(PROVIDER_IDS.PRIME_VIDEO);
+
+            if (selectedProviders.length > 0) {
+                const apiParams = {
+                    with_watch_providers: selectedProviders.join('|'),
+                    watch_region: REGION,
+                    sort_by: state.sortOrder,
+                    page: 1,
+                };
+
+                const movieData = await fetchFromTMDB('/discover/movie', apiParams);
+
+                if (movieData && movieData.results && movieData.results.length > 0) {
+                    // 最初の映画のYouTubeキーを取得
+                    for (const movie of movieData.results) {
+                        const videosData = await fetchFromTMDB(`/movie/${movie.id}/videos`);
+
+                        if (videosData && videosData.results) {
+                            const trailer = videosData.results.find(video => video.type === 'Trailer' && video.site === 'YouTube');
+                            const teaser = videosData.results.find(video => video.type === 'Teaser' && video.site === 'YouTube');
+                            const anyVideo = videosData.results.find(video => video.site === 'YouTube');
+                            const videoToPlay = trailer || teaser || anyVideo;
+
+                            if (videoToPlay) {
+                                state.firstTrailerKey = videoToPlay.key;
+                                state.firstMovie = movie;
+                                console.log(`iOS Safari: 最初の動画 "${movie.title}" のトレーラーを事前取得しました`);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.warn('iOS Safari: 最初の動画データの事前取得に失敗しました:', error);
+        }
+    }
+
     if (startModal && startButton && dimmingOverlay && theaterScreen) {
         startModal.classList.remove('hidden');
 
@@ -1052,6 +1107,25 @@ async function initializeApp() {
             }
 
             startButton.disabled = true;
+
+            // iOS Safari用: ユーザージェスチャーコンテキスト内で即座にプレーヤーを作成
+            if (state.isIOSSafari && state.firstTrailerKey && state.firstMovie) {
+                console.log('iOS Safari: ユーザージェスチャーコンテキスト内でプレーヤーを作成します');
+                // 音声ONで再生（allowUnmuted=trueを渡す）
+                displayTrailer(state.firstTrailerKey, true);
+                // 映画情報も表示
+                displayMovieInfo(state.firstMovie);
+                // 状態を更新
+                state.movies = [state.firstMovie]; // 暫定的に配列に追加
+                state.currentMovieIndex = 0;
+                markCurrentMovieProcessed();
+                state.history.push(0);
+                updateButtonStates();
+                // ミュート解除ボタンのテキストを更新
+                if (iosUnmuteButton) {
+                    iosUnmuteButton.textContent = '🔊 音声OFF';
+                }
+            }
 
             // ブザー音を再生（ユーザーインタラクション直後なので再生可能）
             buzzerAudio.play().catch((error) => {

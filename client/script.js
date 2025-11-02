@@ -62,6 +62,8 @@ const state = {
     isSoundEnabled: false,
     hasStarted: false,
     sortOrder: 'popularity.desc',
+    lastAutoSkipTime: null,
+    isRetrying: false,
 };
 
 // --- DOM要素 ---
@@ -266,7 +268,55 @@ function populateGenreFilterUI() {
 // --- コアロジック ---
 
 function handleYoutubeError(event) {
-    console.warn('YouTubeプレーヤーエラーが発生しました。コード:', event.data);
+    const errorCode = event.data;
+    const currentTime = Date.now();
+    const movie = state.movies[state.currentMovieIndex];
+    const videoId = movie?.videos?.results?.[0]?.key || 'unknown';
+
+    // エラーの種類を判別
+    const isFatalError = [100, 101, 150].includes(errorCode);
+    const isTemporaryError = [2, 5].includes(errorCode);
+    const errorType = isFatalError ? '致命的' : isTemporaryError ? '一時的' : '不明';
+
+    console.warn(`[YouTube Error] エラーコード: ${errorCode}, 種類: ${errorType}, 動画ID: ${videoId}, 時刻: ${new Date(currentTime).toLocaleTimeString()}`);
+
+    // 致命的なエラーの場合は即座にスキップ（連続スキップチェックなし）
+    if (isFatalError) {
+        console.warn(`[YouTube Error] 致命的なエラーのため、動画をスキップします`);
+        state.lastAutoSkipTime = currentTime;
+        playNext();
+        return;
+    }
+
+    // 一時的なエラーの場合はリトライを試みる
+    if (isTemporaryError && !state.isRetrying) {
+        console.warn(`[YouTube Error] 一時的なエラーのため、リトライを試みます`);
+        state.isRetrying = true;
+        setTimeout(() => {
+            if (state.youtubePlayer && typeof state.youtubePlayer.playVideo === 'function') {
+                state.youtubePlayer.playVideo();
+                // リトライ後、2秒待ってもエラーが続く場合はスキップ
+                setTimeout(() => {
+                    state.isRetrying = false;
+                }, 2000);
+            }
+        }, 1000);
+        return;
+    }
+
+    // 連続スキップ防止: 最後のスキップから3秒以内の場合はスキップしない
+    if (state.lastAutoSkipTime !== null) {
+        const timeSinceLastSkip = (currentTime - state.lastAutoSkipTime) / 1000;
+        if (timeSinceLastSkip < 3) {
+            console.warn(`[YouTube Error] 最後のスキップから${timeSinceLastSkip.toFixed(1)}秒しか経過していないため、自動スキップをスキップします`);
+            return;
+        }
+    }
+
+    // スキップ実行
+    console.warn(`[YouTube Error] 次の動画にスキップします`);
+    state.lastAutoSkipTime = currentTime;
+    state.isRetrying = false;
     playNext();
 }
 

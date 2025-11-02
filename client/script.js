@@ -1,80 +1,5 @@
 console.log('Trailer Zapperのスクリプトが読み込まれました。');
 
-// --- PWA機能 ---
-/**
- * スタンドアロンモード（ホーム画面から起動）を検出
- * @returns {boolean} - スタンドアロンモードの場合true
- */
-function isStandalone() {
-  // iOS Safari standalone mode
-  if (window.navigator.standalone === true) {
-    return true;
-  }
-  // Android Chrome standalone mode
-  if (window.matchMedia('(display-mode: standalone)').matches) {
-    return true;
-  }
-  return false;
-}
-
-// Service Worker登録
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => {
-        console.log('[PWA] Service Worker registered:', registration.scope);
-      })
-      .catch(error => {
-        console.error('[PWA] Service Worker registration failed:', error);
-      });
-  });
-}
-
-// PWA インストールバナー
-let deferredPrompt = null;
-
-// beforeinstallprompt イベントをキャプチャ
-window.addEventListener('beforeinstallprompt', (e) => {
-  console.log('[PWA] beforeinstallprompt event fired');
-  e.preventDefault();
-  deferredPrompt = e;
-
-  // 既にインストール済みまたは最近dismissされた場合はバナーを表示しない
-  const pwaInstalled = localStorage.getItem('pwa-installed');
-  const pwaDismissed = localStorage.getItem('pwa-install-dismissed');
-  const dismissTime = pwaDismissed ? parseInt(pwaDismissed) : 0;
-  const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
-
-  if (pwaInstalled === 'true') {
-    console.log('[PWA] Already installed - banner hidden');
-    return;
-  }
-
-  if (dismissTime && (Date.now() - dismissTime < sevenDaysInMs)) {
-    console.log('[PWA] Recently dismissed - banner hidden');
-    return;
-  }
-
-  // 3秒後にバナーを表示（スタートアップモーダルの後）
-  setTimeout(() => {
-    if (pwaInstallBanner) {
-      pwaInstallBanner.classList.remove('hidden');
-      console.log('[PWA] Install banner shown');
-    }
-  }, 3000);
-});
-
-// appinstalled イベント
-window.addEventListener('appinstalled', () => {
-  console.log('[PWA] App installed');
-  if (pwaInstallBanner) {
-    pwaInstallBanner.classList.add('hidden');
-  }
-  localStorage.setItem('pwa-installed', 'true');
-  deferredPrompt = null;
-});
-
-
 // --- API設定 ---
 // APIキーはプロキシサーバー経由で安全に管理されます
 // ローカル開発環境ではプロキシサーバー（ポート3000）を使用
@@ -149,7 +74,6 @@ const state = {
     isRetrying: false,
     isIOSSafari: false, // iOS Safari検出フラグ
     iosUserWantsSound: false, // iOS Safariでユーザーが音声をリクエストしたかどうか
-    isStandalone: isStandalone(), // PWA スタンドアロンモード検出
 };
 
 // --- DOM要素 ---
@@ -169,9 +93,6 @@ const genreFilterClose = document.getElementById('genre-filter-close');
 const aboutButton = document.getElementById('about-button');
 const aboutModal = document.getElementById('about-modal');
 const aboutModalClose = document.getElementById('about-modal-close');
-const pwaInstallBanner = document.getElementById('pwa-install-banner');
-const pwaInstallButton = document.getElementById('pwa-install-button');
-const pwaDismissButton = document.getElementById('pwa-dismiss-button');
 const uiLayer = document.querySelector('.ui-layer');
 const pauseButton = document.getElementById('pause-button');
 const immersiveStage = document.getElementById('immersive-stage');
@@ -275,11 +196,9 @@ async function displayTrailer(youtubeKey) {
             playerOverlay.classList.remove('hidden');
         }
 
-        // スタンドアロンモードまたはユーザーが音声ONにしていた場合は音声ONで再生
-        if (state.isStandalone || state.iosUserWantsSound) {
+        // ユーザーが音声ONにしていた場合は音声ONで再生
+        if (state.iosUserWantsSound) {
             state.youtubePlayer.unMute();
-            state.youtubePlayer.setVolume(100);
-            console.log('[PWA] 既存プレーヤー: 音声ON');
         } else {
             state.youtubePlayer.mute();
         }
@@ -319,12 +238,7 @@ async function displayTrailer(youtubeKey) {
         },
         events: {
             onReady: (event) => {
-                // スタンドアロンモード（PWA）の場合
-                if (state.isStandalone) {
-                    console.log('[PWA] スタンドアロンモード: 音声付きで再生開始');
-                    applySoundPreference();
-                    event.target.playVideo();
-                } else if (state.isIOSSafari) {
+                if (state.isIOSSafari) {
                     // iOS Safariでは常にミュートで再生開始
                     console.log('iOS Safari: ミュートで再生開始');
                     event.target.mute();
@@ -397,17 +311,6 @@ function showLoadingMessage(message) {
 
 function applySoundPreference() {
     if (!state.youtubePlayer || typeof state.youtubePlayer.isMuted !== 'function') {
-        return;
-    }
-    // スタンドアロンモード（PWA）では音声制限が緩和されているため、通常の音声設定を適用
-    if (state.isStandalone) {
-        if (state.isSoundEnabled || state.iosUserWantsSound) {
-            state.youtubePlayer.unMute();
-            state.youtubePlayer.setVolume(100);
-            console.log('[PWA] スタンドアロンモード: 音声ON');
-        } else {
-            state.youtubePlayer.mute();
-        }
         return;
     }
     // iOS Safariでユーザーが音声をリクエストした場合
@@ -762,12 +665,6 @@ function hideUI(force = false) {
 }
 
 function setupUIControls() {
-    // PWA スタンドアロンモードの場合は全画面ボタンを非表示
-    if (state.isStandalone && fullscreenButton) {
-        fullscreenButton.style.display = 'none';
-        console.log('[PWA] Running in standalone mode - fullscreen button hidden');
-    }
-
     // iOS Safari用のフローティングボタン（音声ON / 再生再開）
     if (iosUnmuteButton) {
         iosUnmuteButton.addEventListener('click', (event) => {
@@ -1211,15 +1108,7 @@ async function initializeApp() {
 
             startButton.disabled = true;
 
-            // スタンドアロンモードの場合、音声を有効化
-            if (state.isStandalone) {
-                state.iosUserWantsSound = true;
-                console.log('[PWA] スタンドアロンモード: 音声を有効化');
-            }
-
             // ブザー音を再生（ユーザーインタラクション直後なので再生可能）
-            // PWA再起動後もロードを確実に実行
-            buzzerAudio.load();
             buzzerAudio.play().catch((error) => {
                 console.warn('ブザー音の再生に失敗しました:', error);
             });
@@ -1305,44 +1194,6 @@ async function initializeApp() {
     } else {
         state.hasStarted = true;
         updateAndFetchMovies(true);
-    }
-
-    // --- PWAイベントリスナー設定 ---
-    // インストールボタンのクリック
-    if (pwaInstallButton) {
-        pwaInstallButton.addEventListener('click', async () => {
-            if (!deferredPrompt) {
-                console.log('[PWA] No deferred prompt available');
-                return;
-            }
-
-            // インストールプロンプトを表示
-            deferredPrompt.prompt();
-
-            // ユーザーの選択を待つ
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log(`[PWA] User response: ${outcome}`);
-
-            if (outcome === 'accepted') {
-                // インストール成功時はバナーを非表示
-                if (pwaInstallBanner) {
-                    pwaInstallBanner.classList.add('hidden');
-                }
-            }
-
-            deferredPrompt = null;
-        });
-    }
-
-    // 後でボタンのクリック
-    if (pwaDismissButton) {
-        pwaDismissButton.addEventListener('click', () => {
-            if (pwaInstallBanner) {
-                pwaInstallBanner.classList.add('hidden');
-            }
-            localStorage.setItem('pwa-install-dismissed', Date.now().toString());
-            console.log('[PWA] Install banner dismissed');
-        });
     }
 }
 

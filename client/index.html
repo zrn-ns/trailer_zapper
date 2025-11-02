@@ -68,11 +68,16 @@
             <div class="controls">
                 <button id="prev-button" class="primary-button">前へ</button>
                 <button id="pause-button" class="primary-button">一時停止</button>
-                <button id="ios-unmute-button" class="primary-button" style="display: none;">🔇 音声ON</button>
                 <button id="fullscreen-button" class="primary-button">全画面</button>
                 <button id="next-button" class="primary-button">次へ</button>
             </div>
         </div>
+
+        <!-- iOS Safari専用フローティングミュート解除ボタン -->
+        <button id="ios-unmute-button" class="ios-unmute-floating" style="display: none;">
+            <span class="unmute-icon">🔇</span>
+            <span class="unmute-text">タップして音声ON</span>
+        </button>
     </div>
     <!-- 映画館スクリーン背景 -->
     <div id="theater-screen" class="theater-screen"></div>

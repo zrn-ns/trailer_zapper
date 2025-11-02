@@ -722,6 +722,63 @@ body {
     width: min(640px, 100%);
 }
 
+/* iOS Safari専用フローティングミュート解除ボタン */
+.ios-unmute-floating {
+    position: fixed;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10002;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 32px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 60px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+                0 0 0 0 rgba(102, 126, 234, 0.6);
+    transition: all 0.3s ease;
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.ios-unmute-floating:hover {
+    transform: translateX(-50%) scale(1.05);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5),
+                0 0 0 8px rgba(102, 126, 234, 0.3);
+}
+
+.ios-unmute-floating:active {
+    transform: translateX(-50%) scale(0.95);
+}
+
+.ios-unmute-floating .unmute-icon {
+    font-size: 2.5rem;
+    line-height: 1;
+}
+
+.ios-unmute-floating .unmute-text {
+    font-size: 0.9rem;
+    font-weight: 500;
+    opacity: 0.95;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+                    0 0 0 0 rgba(102, 126, 234, 0.6);
+    }
+    50% {
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+                    0 0 0 12px rgba(102, 126, 234, 0.3);
+    }
+}
+
 /* 映画館スクリーン背景 */
 .theater-screen {
     position: fixed;

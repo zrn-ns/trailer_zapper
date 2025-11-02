@@ -10,5 +10,9 @@
   },
   "keywords": ["tmdb", "trailer", "movie", "cinema"],
   "author": "@zrnbtn",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.2",
+    "cors": "^2.8.5"
+  }
 }

@@ -123,6 +123,48 @@ trailer_zapper/
 - **H**: UI表示/非表示
 - **Enter**: 配信サービスで開く
 
+## Vercelへのデプロイ
+
+このアプリケーションは無料でVercelにデプロイできます。
+
+### 1. Vercelアカウントの作成
+
+[Vercel](https://vercel.com)にアクセスしてアカウントを作成します（GitHubアカウントで簡単にサインアップできます）。
+
+### 2. リポジトリのインポート
+
+1. Vercel Dashboardにアクセス
+2. "New Project"をクリック
+3. GitHubリポジトリ `zrn-ns/trailer_zapper` をインポート
+
+### 3. プロジェクト設定
+
+- **Framework Preset**: `Other`（自動検出されない場合）
+- **Root Directory**: `.`（ルートディレクトリのまま）
+- **Build Command**: 空欄のままでOK
+- **Output Directory**: `public`
+
+### 4. 環境変数の設定
+
+Vercel Dashboardのプロジェクト設定で以下の環境変数を追加：
+
+| 変数名 | 値 | 説明 |
+|-------|---|-----|
+| `TMDB_API_KEY` | `your_actual_api_key` | TMDB APIキー（必須） |
+| `ALLOWED_ORIGINS` | `https://your-app.vercel.app` | 許可するオリジン（オプション） |
+
+### 5. デプロイ
+
+"Deploy"ボタンをクリックしてデプロイを開始します。数分で自動的にデプロイが完了し、URLが発行されます。
+
+### 6. デプロイ後の確認
+
+発行されたURL（例：`https://your-app.vercel.app`）にアクセスして、アプリケーションが正常に動作することを確認します。
+
+### 自動デプロイ
+
+mainブランチに変更をpushすると、Vercelが自動的に再デプロイします。
+
 ## トラブルシューティング
 
 ### プロキシサーバーが起動しない

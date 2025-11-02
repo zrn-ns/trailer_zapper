@@ -1,0 +1,23 @@
+# ローカル開発用ファイル
+client/
+server/
+
+# 環境変数ファイル
+.env
+.env.local
+.env.*.local
+
+# 依存関係
+node_modules/
+server/node_modules/
+
+# Git
+.git/
+.gitignore
+
+# OpenSpec
+openspec/
+
+# その他
+*.log
+.DS_Store

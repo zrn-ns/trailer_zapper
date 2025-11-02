@@ -1,6 +1,6 @@
 # playback-ui Spec Delta
 
-## NEW Requirements
+## ADDED Requirements
 
 ### Requirement: YouTube動画エラー処理
 

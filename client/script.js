@@ -70,6 +70,7 @@ const nextButton = document.getElementById('next-button');
 const netflixFilter = document.getElementById('netflix-filter');
 const primeVideoFilter = document.getElementById('prime-video-filter');
 const playerContainer = document.getElementById('player-container');
+const playerOverlay = document.getElementById('player-overlay');
 const movieInfoContainer = document.getElementById('movie-info');
 const genreFilterToggle = document.getElementById('genre-filter-toggle');
 const genreFilterModal = document.getElementById('genre-filter-modal');
@@ -138,6 +139,11 @@ async function displayTrailer(youtubeKey) {
 
     destroyYoutubePlayer(); // 常にプレーヤーを破棄して再生成する
 
+    // オーバーレイを表示（YouTube UIを隠す）
+    if (playerOverlay) {
+        playerOverlay.classList.remove('hidden');
+    }
+
     playerContainer.innerHTML = ''; // コンテナをクリア
     const playerHost = document.createElement('div');
     playerHost.id = 'youtube-player';
@@ -200,8 +206,15 @@ function displayMovieInfo(movie) {
 
 function showLoadingMessage(message) {
     destroyYoutubePlayer();
-    playerContainer.innerHTML = `<p>${message}</p>`;
+    // オーバーレイのスピナーで代用するため、メッセージは非表示
+    playerContainer.innerHTML = '';
     movieInfoContainer.innerHTML = '';
+
+    // オーバーレイを表示
+    if (playerOverlay) {
+        playerOverlay.classList.remove('hidden');
+    }
+
     if (pauseButton) {
         state.isPaused = true;
         updatePauseButton();
@@ -247,10 +260,18 @@ function handleYoutubeStateChange(event) {
         state.isPaused = false;
         updatePauseButton();
         applySoundPreference();
+        // 再生開始時にオーバーレイを非表示（YouTube UIが見えるようになる）
+        if (playerOverlay) {
+            playerOverlay.classList.add('hidden');
+        }
     } else if (event.data === YT.PlayerState.PAUSED) {
         state.isPaused = true;
         updatePauseButton();
     } else if (event.data === YT.PlayerState.ENDED) {
+        // 動画終了時にオーバーレイを表示（関連動画を隠す）
+        if (playerOverlay) {
+            playerOverlay.classList.remove('hidden');
+        }
         playNext();
     }
 }

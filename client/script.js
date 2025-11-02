@@ -58,7 +58,6 @@ const state = {
     history: [],
     currentMovieIndex: 0,
     selectedProviders: [],
-    ignoredMovies: new Set(),
     genres: [],
     selectedGenres: new Set(),
     youtubePlayer: null,
@@ -283,7 +282,6 @@ function displayMovieInfo(movie) {
             <div class="genres">${movieGenres}</div>
             <p>${movie.overview || 'あらすじはありません。'}</p>
             <div class="info-actions">
-                <button id="ignore-button" class="button">興味なし</button>
                 <button id="open-service-button" class="ghost-button">配信サービスで開く</button>
             </div>
         </div>
@@ -878,11 +876,11 @@ async function updateAndFetchMovies(resetPage = true) {
             const totalFetched = movieData.results.length;
             const newMovies = movieData.results.filter(movie => {
                 const movieId = movie.id;
-                return !state.ignoredMovies.has(movieId) && !state.processedMovies.has(movieId);
+                return !state.processedMovies.has(movieId);
             });
             const filteredCount = totalFetched - newMovies.length;
             if (filteredCount > 0) {
-                console.log(`[フィルタリング] ${totalFetched}件中${filteredCount}件を除外しました（再生済み: ${state.processedMovies.size}件, 興味なし: ${state.ignoredMovies.size}件）`);
+                console.log(`[フィルタリング] ${totalFetched}件中${filteredCount}件を除外しました（再生済み: ${state.processedMovies.size}件）`);
             }
 
             if (newMovies.length > 0) {
@@ -898,7 +896,7 @@ async function updateAndFetchMovies(resetPage = true) {
 
             if (pageToFetch >= state.totalPages) {
                 state.movies = resetPage ? [] : existingMovies;
-                showLoadingMessage('視聴可能な映画はすべて「興味なし」または除外ジャンルに設定されています。');
+                showLoadingMessage('視聴可能な映画はすべて再生済みです。');
                 updateButtonStates();
                 return;
             }
@@ -932,16 +930,6 @@ function playPrev() {
     loadAndDisplayTrailer(targetMovieIndex);
 }
 
-function handleIgnoreClick() {
-    const movieToIgnore = state.movies[state.currentMovieIndex];
-    if (!movieToIgnore) return;
-
-    console.log(`'${movieToIgnore.title}' を興味なしリストに追加しました。`);
-    state.ignoredMovies.add(movieToIgnore.id);
-    localStorage.setItem('ignoredMovies', JSON.stringify(Array.from(state.ignoredMovies)));
-
-    playNext();
-}
 
 // --- 初期化処理 ---
 
@@ -1045,16 +1033,14 @@ async function initializeApp() {
     });
 
     movieInfoContainer.addEventListener('click', (event) => {
-        if (event.target.id === 'ignore-button') {
-            handleIgnoreClick();
-        } else if (event.target.id === 'open-service-button') {
+        if (event.target.id === 'open-service-button') {
             openMovieOnService();
         } else if (event.target.classList.contains('genre-tag')) {
             const genreId = parseInt(event.target.dataset.genreId);
             if (!state.selectedGenres.has(genreId)) {
                 state.selectedGenres.add(genreId);
                 localStorage.setItem('selectedGenres', JSON.stringify(Array.from(state.selectedGenres)));
-                populateGenreFilterUI(); 
+                populateGenreFilterUI();
                 updateAndFetchMovies(true);
             }
         }
@@ -1083,9 +1069,6 @@ async function initializeApp() {
         netflixFilter.checked = savedProviders.includes(PROVIDER_IDS.NETFLIX);
         primeVideoFilter.checked = savedProviders.includes(PROVIDER_IDS.PRIME_VIDEO);
     }
-
-    const savedIgnored = JSON.parse(localStorage.getItem('ignoredMovies')) || [];
-    state.ignoredMovies = new Set(savedIgnored);
 
     const savedProcessed = JSON.parse(localStorage.getItem('processedMovies')) || [];
     state.processedMovies = new Set(savedProcessed);

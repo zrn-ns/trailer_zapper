@@ -705,22 +705,6 @@ body {
     margin-top: auto;
 }
 
-#ignore-button {
-    padding: 10px 20px;
-    border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
-}
-
-#ignore-button:hover {
-    transform: translateY(-1px);
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.34);
-}
-
 .controls {
     display: flex;
     gap: 20px;
@@ -1024,11 +1008,6 @@ body {
         margin-top: 4px;
     }
 
-    #ignore-button {
-        font-size: 0.8rem;
-        padding: 6px 12px;
-    }
-
     .controls {
         gap: 10px;
         width: min(500px, 100%);
@@ -1203,12 +1182,6 @@ body {
     .info-actions {
         gap: 12px;
         margin-top: 8px;
-    }
-
-    #ignore-button {
-        align-self: center;
-        font-size: 0.9rem;
-        padding: 8px 16px;
     }
 
     .controls {

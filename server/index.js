@@ -10,6 +10,7 @@ const app = express();
 // 環境変数の検証
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const PORT = process.env.PORT || 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
   : ['http://localhost:8000', 'http://127.0.0.1:8000'];
@@ -20,17 +21,28 @@ if (!TMDB_API_KEY) {
 }
 
 // CORSの設定
-app.use(cors({
-  origin: function (origin, callback) {
-    // originがundefinedの場合（同一オリジン）またはALLOWED_ORIGINSに含まれる場合は許可
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-}));
+if (NODE_ENV === 'development') {
+  // 開発モード: すべてのオリジンを許可
+  console.log('🔓 CORS: すべてのオリジンを許可（開発モード）');
+  app.use(cors({
+    origin: true,
+    credentials: true
+  }));
+} else {
+  // 本番モード: ALLOWED_ORIGINSのみ許可
+  console.log(`🔒 CORS: 許可されたオリジンのみ（本番モード）`);
+  app.use(cors({
+    origin: function (origin, callback) {
+      // originがundefinedの場合（同一オリジン）またはALLOWED_ORIGINSに含まれる場合は許可
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true
+  }));
+}
 
 // JSONボディパーサー
 app.use(express.json());

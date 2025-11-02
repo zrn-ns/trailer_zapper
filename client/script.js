@@ -490,10 +490,11 @@ function togglePause() {
     } else {
         state.youtubePlayer.pauseVideo();
         state.isPaused = true;
+        // 一時停止した時だけUIを表示
+        showUI();
     }
 
     updatePauseButton();
-    showUI();
 }
 
 function toggleUIVisibility() {

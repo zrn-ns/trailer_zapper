@@ -61,6 +61,7 @@ const state = {
     isPaused: false,
     isSoundEnabled: false,
     hasStarted: false,
+    sortOrder: 'popularity.desc',
 };
 
 // --- DOM要素 ---
@@ -69,6 +70,7 @@ const prevButton = document.getElementById('prev-button');
 const nextButton = document.getElementById('next-button');
 const netflixFilter = document.getElementById('netflix-filter');
 const primeVideoFilter = document.getElementById('prime-video-filter');
+const sortOrderSelect = document.getElementById('sort-order');
 const playerContainer = document.getElementById('player-container');
 const playerOverlay = document.getElementById('player-overlay');
 const movieInfoContainer = document.getElementById('movie-info');
@@ -288,6 +290,18 @@ function markCurrentMovieProcessed() {
         state.processedMovies.add(movie.id);
         persistProcessedMovies();
     }
+}
+
+function loadSortOrder() {
+    const saved = localStorage.getItem('sortOrder');
+    if (saved) {
+        state.sortOrder = saved;
+        sortOrderSelect.value = saved;
+    }
+}
+
+function saveSortOrder() {
+    localStorage.setItem('sortOrder', state.sortOrder);
 }
 
 function updatePauseButton() {
@@ -624,7 +638,7 @@ async function updateAndFetchMovies(resetPage = true) {
             const apiParams = {
                 with_watch_providers: selectedProviders.join('|'),
                 watch_region: REGION,
-                sort_by: 'popularity.desc',
+                sort_by: state.sortOrder,
                 page: pageToFetch,
             };
 
@@ -740,7 +754,20 @@ async function initializeApp() {
     }
     netflixFilter.addEventListener('change', () => updateAndFetchMovies(true));
     primeVideoFilter.addEventListener('change', () => updateAndFetchMovies(true));
-    
+
+    // ソート順変更時のイベントハンドラー
+    sortOrderSelect.addEventListener('change', () => {
+        state.sortOrder = sortOrderSelect.value;
+        saveSortOrder();
+
+        // ソート順変更時は完全にリセット（新しい発見体験を提供）
+        state.history = [];
+        state.processedMovies.clear();
+        persistProcessedMovies();
+
+        updateAndFetchMovies(true);
+    });
+
     // ジャンルフィルターモーダルの開閉
     genreFilterToggle.addEventListener('click', () => {
         genreFilterModal.classList.remove('hidden');
@@ -808,6 +835,9 @@ async function initializeApp() {
 
     const savedSelectedGenres = JSON.parse(localStorage.getItem('selectedGenres')) || [];
     state.selectedGenres = new Set(savedSelectedGenres);
+
+    // ソート順を読み込み
+    loadSortOrder();
 
     // ジャンルリストを取得してからアプリのメインロジックを開始
     const genreData = await fetchFromTMDB('/genre/movie/list');

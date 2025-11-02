@@ -460,6 +460,9 @@ function showUI(force = false) {
     if (isManuallyHidden && !force) return;
     if (!isUIVisible) {
         uiLayer.classList.remove('ui-hidden');
+        if (aboutButton) {
+            aboutButton.classList.remove('ui-hidden');
+        }
         isUIVisible = true;
         // ボタンのテキストを更新
         if (uiToggleButton) {
@@ -480,6 +483,9 @@ function hideUI(force = false) {
 
     if (isUIVisible) {
         uiLayer.classList.add('ui-hidden');
+        if (aboutButton) {
+            aboutButton.classList.add('ui-hidden');
+        }
         isUIVisible = false;
         // ボタンのテキストを更新
         if (uiToggleButton) {

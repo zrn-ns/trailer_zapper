@@ -113,6 +113,12 @@ body {
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
 }
 
+.about-button.ui-hidden {
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+}
+
 #immersive-stage:fullscreen .about-button {
     bottom: clamp(12px, 3vw, 24px);
     right: clamp(12px, 3vw, 24px);

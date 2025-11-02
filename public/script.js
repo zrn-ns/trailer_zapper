@@ -923,9 +923,17 @@ async function initializeApp() {
     });
 
     // localStorageから設定を読み込み
-    const savedProviders = JSON.parse(localStorage.getItem('selectedProviders')) || [];
-    if (savedProviders.includes(PROVIDER_IDS.NETFLIX)) netflixFilter.checked = true;
-    if (savedProviders.includes(PROVIDER_IDS.PRIME_VIDEO)) primeVideoFilter.checked = true;
+    const savedProviders = JSON.parse(localStorage.getItem('selectedProviders'));
+
+    // 初回訪問時（localStorageが空）はデフォルトで両方チェック
+    if (savedProviders === null) {
+        netflixFilter.checked = true;
+        primeVideoFilter.checked = true;
+    } else {
+        // 保存された設定がある場合はそれを適用
+        netflixFilter.checked = savedProviders.includes(PROVIDER_IDS.NETFLIX);
+        primeVideoFilter.checked = savedProviders.includes(PROVIDER_IDS.PRIME_VIDEO);
+    }
 
     const savedIgnored = JSON.parse(localStorage.getItem('ignoredMovies')) || [];
     state.ignoredMovies = new Set(savedIgnored);

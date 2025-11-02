@@ -834,19 +834,6 @@ async function initializeApp() {
 
             // 暗転アニメーション完了後、アプリケーションを開始
             setTimeout(() => {
-                // 暗転オーバーレイをゆっくりフェードアウト
-                if (dimmingOverlay) {
-                    dimmingOverlay.style.animation = 'none';
-                    dimmingOverlay.style.transition = 'opacity 0.8s ease-out';
-                    dimmingOverlay.style.opacity = '0';
-
-                    // フェードアウト完了後に完全に非表示
-                    setTimeout(() => {
-                        dimmingOverlay.style.display = 'none';
-                        dimmingOverlay.style.visibility = 'hidden';
-                    }, 800);
-                }
-
                 state.hasStarted = true;
                 startModal.classList.add('hidden');
                 setSoundEnabled(true);
@@ -869,13 +856,30 @@ async function initializeApp() {
                     }
                 }
 
-                // スクリーンを非表示にしてUIレイヤーを表示
+                // スクリーンを即座に非表示（トランジションなし）
                 if (theaterScreen) {
-                    theaterScreen.classList.add('hidden');
+                    theaterScreen.style.transition = 'none';
+                    theaterScreen.style.opacity = '0';
+                    theaterScreen.style.display = 'none';
                 }
                 if (uiLayer) {
                     uiLayer.classList.remove('startup-hidden');
                 }
+
+                // theater-screenを非表示にしてから、暗転オーバーレイをゆっくりフェードアウト
+                setTimeout(() => {
+                    if (dimmingOverlay) {
+                        dimmingOverlay.style.animation = 'none';
+                        dimmingOverlay.style.transition = 'opacity 0.8s ease-out';
+                        dimmingOverlay.style.opacity = '0';
+
+                        // フェードアウト完了後に完全に非表示
+                        setTimeout(() => {
+                            dimmingOverlay.style.display = 'none';
+                            dimmingOverlay.style.visibility = 'hidden';
+                        }, 800);
+                    }
+                }, 50); // theater-screenの非表示処理の後、少し待ってからフェードアウト
 
                 if (!shouldShowUI) {
                     hideUI(true);

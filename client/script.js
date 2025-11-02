@@ -385,7 +385,22 @@ function handleYoutubeStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
         state.isPaused = false;
         updatePauseButton();
-        applySoundPreference();
+
+        // iOS Safariの場合、再生が安定してから音声設定を適用
+        if (state.isIOSSafari && state.iosUserWantsSound) {
+            console.log('iOS Safari: 再生安定後に音声ONを試みます');
+            setTimeout(() => {
+                if (state.youtubePlayer && !state.isPaused) {
+                    console.log('iOS Safari: 音声ONに切り替え');
+                    state.youtubePlayer.unMute();
+                    state.youtubePlayer.setVolume(100);
+                }
+            }, 1000); // 1秒待ってから音声ON
+        } else if (!state.isIOSSafari) {
+            // 非iOS Safariでは即座に音声設定を適用
+            applySoundPreference();
+        }
+
         // 再生開始時にオーバーレイを非表示（YouTube UIが見えるようになる）
         if (playerOverlay) {
             playerOverlay.classList.add('hidden');

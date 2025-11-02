@@ -571,31 +571,141 @@ body {
 .tmdb-attribution img:hover {
     opacity: 1;
 }
-@media (max-width: 1024px) {
+/* タブレット用スタイル（削除 - 721-1024pxは下記の専用ルールを使用） */
+
+/* タブレット・モバイル横画面用（721px - 1024px） */
+@media (min-width: 721px) and (max-width: 1024px) {
+    .ui-layer {
+        padding: 12px clamp(12px, 2vw, 20px);
+        gap: 10px;
+    }
+
+    .hero-header h1 {
+        font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+        margin-bottom: 4px;
+    }
+
+    .hero-tagline {
+        font-size: 0.85rem;
+        line-height: 1.3;
+    }
+
     .hud {
-        align-items: stretch;
-        flex-direction: column;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 12px;
+        align-items: flex-start;
     }
 
     .control-panel {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 18px;
+        flex: 0 0 200px;
+        max-width: 200px;
+        padding: 12px;
+        border-radius: 16px;
+        gap: 10px;
     }
 
-    .panel-section {
-        flex: 1 1 240px;
+    .panel-section h3 {
+        font-size: 0.75rem;
+        margin-bottom: 6px;
+    }
+
+    .provider-filters {
+        gap: 6px;
+    }
+
+    .provider-filters label {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+
+    .ghost-button {
+        font-size: 0.8rem;
+        padding: 8px 12px;
     }
 
     .panel-hint {
-        flex: 1 1 100%;
+        font-size: 0.75rem;
+        line-height: 1.4;
     }
 
-    #genre-filter-list {
-        position: static;
+    .info-panel {
+        flex: 1 1 auto;
+        padding: 12px;
+        border-radius: 16px;
+        gap: 10px;
+        min-width: auto;
+    }
+
+    .info-panel img {
+        width: clamp(100px, 12vw, 130px);
+    }
+
+    .movie-details {
+        gap: 8px;
+    }
+
+    .movie-details h2 {
+        font-size: clamp(1.2rem, 2.2vw, 1.5rem);
+        line-height: 1.2;
+    }
+
+    .movie-details p {
+        font-size: 0.8rem;
+        line-height: 1.5;
+        max-height: 60px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .genres {
+        gap: 4px;
+    }
+
+    .genre-tag {
+        font-size: 0.7rem;
+        padding: 3px 10px;
+    }
+
+    .info-actions {
+        gap: 8px;
+        margin-top: 4px;
+    }
+
+    #ignore-button {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+    }
+
+    .controls {
+        gap: 10px;
+        width: min(500px, 100%);
+    }
+
+    .primary-button {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+    }
+
+    .ui-toggle-button {
+        top: 8px;
+        right: 8px;
+        padding: 6px 12px;
+        font-size: 0.75rem;
+        min-width: 40px;
+        min-height: 40px;
+    }
+
+    .tmdb-attribution {
+        padding-top: 6px;
+    }
+
+    .tmdb-attribution img {
+        width: 70px;
     }
 }
 
+/* モバイル縦画面用（720px以下） */
 @media (max-width: 720px) {
     body {
         overflow-y: auto;
@@ -610,7 +720,7 @@ body {
     .video-layer {
         position: relative;
         inset: auto;
-        padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 16px max(16px, env(safe-area-inset-left));
+        padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 12px max(12px, env(safe-area-inset-left));
         opacity: 1.0;
     }
 
@@ -623,48 +733,140 @@ body {
     .ui-layer {
         position: relative;
         inset: auto;
-        padding: 24px max(18px, env(safe-area-inset-right)) max(48px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
-        gap: 32px;
+        padding: 16px max(12px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+        gap: 16px;
         min-height: auto;
         background: var(--bg-deep);
     }
 
     .ui-toggle-button {
-        top: max(16px, env(safe-area-inset-top));
-        right: max(16px, env(safe-area-inset-right));
-        min-width: 48px;
-        min-height: 48px;
-        padding: 12px 20px;
+        top: max(12px, env(safe-area-inset-top));
+        right: max(12px, env(safe-area-inset-right));
+        min-width: 44px;
+        min-height: 44px;
+        padding: 10px 16px;
+        font-size: 0.8rem;
+    }
+
+    .hero-header {
+        text-align: center;
+    }
+
+    .hero-header h1 {
+        font-size: clamp(1.8rem, 5vw, 2.4rem);
+        margin-bottom: 8px;
+    }
+
+    .hero-tagline {
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+
+    .hud {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .control-panel {
+        flex: 1 1 auto;
+        max-width: 100%;
+        padding: 16px;
+        border-radius: 20px;
+        gap: 16px;
+    }
+
+    .panel-section h3 {
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+    }
+
+    .provider-filters {
+        gap: 8px;
+    }
+
+    .provider-filters label {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+    }
+
+    .ghost-button {
+        font-size: 0.85rem;
+        padding: 10px 16px;
+    }
+
+    .panel-hint {
+        font-size: 0.8rem;
     }
 
     .info-panel {
         flex-direction: column;
         align-items: center;
         text-align: center;
+        padding: 16px;
+        border-radius: 20px;
+        gap: 12px;
+        min-width: auto;
     }
 
     .info-panel img {
-        width: min(70%, 240px);
+        width: min(60%, 180px);
     }
 
     .movie-details {
         align-items: center;
+        gap: 12px;
+    }
+
+    .movie-details h2 {
+        font-size: clamp(1.3rem, 4vw, 1.6rem);
+        line-height: 1.3;
     }
 
     .movie-details p {
         max-height: none;
+        font-size: 0.9rem;
+        line-height: 1.6;
     }
 
     .genres {
         justify-content: center;
+        gap: 6px;
+    }
+
+    .genre-tag {
+        font-size: 0.75rem;
+        padding: 4px 12px;
+    }
+
+    .info-actions {
+        gap: 12px;
+        margin-top: 8px;
     }
 
     #ignore-button {
         align-self: center;
+        font-size: 0.9rem;
+        padding: 8px 16px;
     }
 
     .controls {
         width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .primary-button {
+        padding: 14px 16px;
+        font-size: 0.9rem;
+    }
+
+    .tmdb-attribution {
+        padding-top: 12px;
+    }
+
+    .tmdb-attribution img {
+        width: 80px;
     }
 }
 

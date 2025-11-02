@@ -788,11 +788,13 @@ async function initializeApp() {
                 startModal.classList.add('hidden');
                 setSoundEnabled(true);
 
-                // モバイルでは最初からUIを表示（マウス移動がないため）
-                // デスクトップでは非表示にして、マウス移動で表示
-                const isMobile = window.innerWidth <= 720;
+                // モバイル縦画面（≤720px）では最初からUIを表示
+                // タッチデバイスの横画面やタブレットでもUIを表示
+                // デスクトップ（非タッチ）のみUIを非表示にして、マウス移動で表示
+                const isPortraitMobile = window.innerWidth <= 720;
+                const shouldShowUI = isPortraitMobile || state.isTouchDevice;
 
-                if (isMobile) {
+                if (shouldShowUI) {
                     isManuallyHidden = false;
                     if (uiToggleButton) {
                         uiToggleButton.textContent = 'UI非表示';
@@ -812,7 +814,7 @@ async function initializeApp() {
                     uiLayer.classList.remove('startup-hidden');
                 }
 
-                if (!isMobile) {
+                if (!shouldShowUI) {
                     hideUI(true);
                 }
                 updateAndFetchMovies(true);

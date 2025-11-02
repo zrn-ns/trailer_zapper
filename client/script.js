@@ -472,6 +472,7 @@ function markCurrentMovieProcessed() {
     if (!state.processedMovies.has(movie.id)) {
         state.processedMovies.add(movie.id);
         persistProcessedMovies();
+        console.log(`[再生済み] ${movie.title} (ID: ${movie.id}) を記録しました。現在の再生済み作品数: ${state.processedMovies.size}`);
     }
 }
 
@@ -874,10 +875,15 @@ async function updateAndFetchMovies(resetPage = true) {
 
             state.totalPages = movieData.total_pages || pageToFetch;
 
+            const totalFetched = movieData.results.length;
             const newMovies = movieData.results.filter(movie => {
                 const movieId = movie.id;
                 return !state.ignoredMovies.has(movieId) && !state.processedMovies.has(movieId);
             });
+            const filteredCount = totalFetched - newMovies.length;
+            if (filteredCount > 0) {
+                console.log(`[フィルタリング] ${totalFetched}件中${filteredCount}件を除外しました（再生済み: ${state.processedMovies.size}件, 興味なし: ${state.ignoredMovies.size}件）`);
+            }
 
             if (newMovies.length > 0) {
                 if (resetPage) {
@@ -977,10 +983,8 @@ async function initializeApp() {
         state.sortOrder = sortOrderSelect.value;
         saveSortOrder();
 
-        // ソート順変更時は完全にリセット（新しい発見体験を提供）
+        // ソート順変更時は履歴のみリセット（再生済み作品は除外し続ける）
         state.history = [];
-        state.processedMovies.clear();
-        persistProcessedMovies();
 
         updateAndFetchMovies(true);
     });
@@ -1085,6 +1089,9 @@ async function initializeApp() {
 
     const savedProcessed = JSON.parse(localStorage.getItem('processedMovies')) || [];
     state.processedMovies = new Set(savedProcessed);
+    if (savedProcessed.length > 0) {
+        console.log(`[初期化] 再生済み作品を${savedProcessed.length}件読み込みました`);
+    }
 
     const savedSelectedGenres = JSON.parse(localStorage.getItem('selectedGenres')) || [];
     state.selectedGenres = new Set(savedSelectedGenres);

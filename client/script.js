@@ -866,6 +866,11 @@ async function initializeApp() {
         startButton.addEventListener('click', () => {
             startButton.disabled = true;
 
+            // ブザー音を再生（ユーザーインタラクション直後なので再生可能）
+            buzzerAudio.play().catch((error) => {
+                console.warn('ブザー音の再生に失敗しました:', error);
+            });
+
             // 映画館のような暗転演出を開始
             startModal.classList.add('fade-out');
             dimmingOverlay.style.animation = 'dim-lights 0.5s ease-in forwards';
@@ -930,13 +935,6 @@ async function initializeApp() {
         state.hasStarted = true;
         updateAndFetchMovies(true);
     }
-
-    // ページロード後1秒後（自動暗転アニメーション開始時）にブザー音を再生
-    setTimeout(() => {
-        buzzerAudio.play().catch((error) => {
-            console.warn('ブザー音の再生に失敗しました:', error);
-        });
-    }, 1000);
 }
 
 initializeApp();

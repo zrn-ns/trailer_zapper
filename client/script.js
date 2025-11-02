@@ -515,8 +515,8 @@ function toggleUIVisibility() {
     if (!state.hasStarted) return;
     if (!uiToggleButton) return;
 
-    // 縦レイアウト（≤720px）では切り替え機能を無効化
-    const isPortraitMobile = window.innerWidth <= 720;
+    // 縦レイアウト（≤1024px）では切り替え機能を無効化
+    const isPortraitMobile = window.innerWidth <= 1024;
     if (isPortraitMobile) return;
 
     if (isManuallyHidden) {
@@ -647,8 +647,8 @@ function hideUI(force = false) {
     if (isManuallyHidden && !force) return;
     if (isInteracting && !force) return; // インタラクション中は非表示にしない
 
-    // 縦レイアウト（≤720px）ではUIを常に表示するため、非表示にしない
-    const isPortraitMobile = window.innerWidth <= 720;
+    // 縦レイアウト（≤1024px）ではUIを常に表示するため、非表示にしない
+    const isPortraitMobile = window.innerWidth <= 1024;
     if (isPortraitMobile && !force) return;
 
     if (isUIVisible) {
@@ -744,7 +744,7 @@ function setupUIControls() {
 
     // 画面サイズ変更時の処理
     window.addEventListener('resize', () => {
-        const isPortraitMobile = window.innerWidth <= 720;
+        const isPortraitMobile = window.innerWidth <= 1024;
 
         // 縦レイアウトに切り替わった場合、UIを強制的に表示
         if (isPortraitMobile && !isUIVisible) {
@@ -1124,10 +1124,10 @@ async function initializeApp() {
                 startModal.classList.add('hidden');
                 setSoundEnabled(true);
 
-                // モバイル縦画面（≤720px）では最初からUIを表示
+                // タブレット・モバイル（≤1024px）では最初からUIを表示
                 // タッチデバイスの横画面やタブレットでもUIを表示
                 // デスクトップ（非タッチ）のみUIを非表示にして、マウス移動で表示
-                const isPortraitMobile = window.innerWidth <= 720;
+                const isPortraitMobile = window.innerWidth <= 1024;
                 const shouldShowUI = isPortraitMobile || state.isTouchDevice;
 
                 if (shouldShowUI) {

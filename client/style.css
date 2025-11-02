@@ -1038,8 +1038,8 @@ body {
 
 }
 
-/* モバイル縦画面用（720px以下） */
-@media (max-width: 720px) {
+/* タブレット・モバイル用（1024px以下） */
+@media (max-width: 1024px) {
     body {
         overflow-y: auto;
     }

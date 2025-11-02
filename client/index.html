@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trailer Zapper</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#050914">
+
+    <!-- iOS Safari PWA Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Trailer Zapper">
+    <link rel="apple-touch-icon" href="/assets/icons/icon-192x192.png">
+
     <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
@@ -139,6 +150,21 @@
                     <h4>ソースコード</h4>
                     <p><a href="https://github.com/zrn-ns/trailer_zapper" target="_blank" rel="noopener noreferrer">GitHub</a></p>
                 </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- PWA Install Banner -->
+    <div id="pwa-install-banner" class="pwa-install-banner hidden">
+        <div class="pwa-install-banner__content">
+            <div class="pwa-install-banner__icon">📱</div>
+            <div class="pwa-install-banner__text">
+                <p class="pwa-install-banner__title">アプリとして追加</p>
+                <p class="pwa-install-banner__description">ホーム画面から簡単にアクセスできます</p>
+            </div>
+            <div class="pwa-install-banner__actions">
+                <button id="pwa-install-button" class="ghost-button">インストール</button>
+                <button id="pwa-dismiss-button" class="ghost-button">後で</button>
             </div>
         </div>
     </div>

@@ -72,7 +72,9 @@ const primeVideoFilter = document.getElementById('prime-video-filter');
 const playerContainer = document.getElementById('player-container');
 const movieInfoContainer = document.getElementById('movie-info');
 const genreFilterToggle = document.getElementById('genre-filter-toggle');
+const genreFilterModal = document.getElementById('genre-filter-modal');
 const genreFilterList = document.getElementById('genre-filter-list');
+const genreFilterClose = document.getElementById('genre-filter-close');
 const uiLayer = document.querySelector('.ui-layer');
 const pauseButton = document.getElementById('pause-button');
 const immersiveStage = document.getElementById('immersive-stage');
@@ -448,7 +450,7 @@ function setupUIControls() {
 
     // インタラクティブ要素のホバー時はUIを維持
     const interactiveElements = document.querySelectorAll(
-        'button, input, label, .control-panel, .info-panel, #genre-filter-list'
+        'button, input, label, .control-panel, .info-panel, .genre-filter-modal'
     );
 
     interactiveElements.forEach(element => {
@@ -693,8 +695,20 @@ async function initializeApp() {
     netflixFilter.addEventListener('change', () => updateAndFetchMovies(true));
     primeVideoFilter.addEventListener('change', () => updateAndFetchMovies(true));
     
+    // ジャンルフィルターモーダルの開閉
     genreFilterToggle.addEventListener('click', () => {
-        genreFilterList.classList.toggle('hidden');
+        genreFilterModal.classList.remove('hidden');
+    });
+
+    genreFilterClose.addEventListener('click', () => {
+        genreFilterModal.classList.add('hidden');
+    });
+
+    // バックドロップクリックでモーダルを閉じる
+    genreFilterModal.addEventListener('click', (event) => {
+        if (event.target === genreFilterModal || event.target.classList.contains('genre-filter-modal__backdrop')) {
+            genreFilterModal.classList.add('hidden');
+        }
     });
 
     genreFilterList.addEventListener('change', (event) => {

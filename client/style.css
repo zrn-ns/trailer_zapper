@@ -744,6 +744,7 @@ body {
     backdrop-filter: blur(12px);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+    pointer-events: auto;
 }
 
 .ios-unmute-floating:hover {

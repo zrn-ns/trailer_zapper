@@ -186,7 +186,10 @@ function displayMovieInfo(movie) {
             </div>
         </div>
     `;
-    showUI();
+    // UIが既に表示されている場合のみ再表示（自動非表示後は再表示しない）
+    if (isUIVisible) {
+        showUI();
+    }
 }
 
 function showLoadingMessage(message) {

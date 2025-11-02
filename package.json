@@ -9,6 +9,6 @@
     "preinstall": "cd server && npm install"
   },
   "keywords": ["tmdb", "trailer", "movie", "cinema"],
-  "author": "",
+  "author": "@zrnbtn",
   "license": "MIT"
 }

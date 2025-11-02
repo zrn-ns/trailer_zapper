@@ -74,42 +74,6 @@ window.addEventListener('appinstalled', () => {
   deferredPrompt = null;
 });
 
-// インストールボタンのクリック
-if (pwaInstallButton) {
-  pwaInstallButton.addEventListener('click', async () => {
-    if (!deferredPrompt) {
-      console.log('[PWA] No deferred prompt available');
-      return;
-    }
-
-    // インストールプロンプトを表示
-    deferredPrompt.prompt();
-
-    // ユーザーの選択を待つ
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log(`[PWA] User response: ${outcome}`);
-
-    if (outcome === 'accepted') {
-      // インストール成功時はバナーを非表示
-      if (pwaInstallBanner) {
-        pwaInstallBanner.classList.add('hidden');
-      }
-    }
-
-    deferredPrompt = null;
-  });
-}
-
-// 後でボタンのクリック
-if (pwaDismissButton) {
-  pwaDismissButton.addEventListener('click', () => {
-    if (pwaInstallBanner) {
-      pwaInstallBanner.classList.add('hidden');
-    }
-    localStorage.setItem('pwa-install-dismissed', Date.now().toString());
-    console.log('[PWA] Install banner dismissed');
-  });
-}
 
 // --- API設定 ---
 // APIキーはプロキシサーバー経由で安全に管理されます
@@ -1315,6 +1279,44 @@ async function initializeApp() {
     } else {
         state.hasStarted = true;
         updateAndFetchMovies(true);
+    }
+
+    // --- PWAイベントリスナー設定 ---
+    // インストールボタンのクリック
+    if (pwaInstallButton) {
+        pwaInstallButton.addEventListener('click', async () => {
+            if (!deferredPrompt) {
+                console.log('[PWA] No deferred prompt available');
+                return;
+            }
+
+            // インストールプロンプトを表示
+            deferredPrompt.prompt();
+
+            // ユーザーの選択を待つ
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`[PWA] User response: ${outcome}`);
+
+            if (outcome === 'accepted') {
+                // インストール成功時はバナーを非表示
+                if (pwaInstallBanner) {
+                    pwaInstallBanner.classList.add('hidden');
+                }
+            }
+
+            deferredPrompt = null;
+        });
+    }
+
+    // 後でボタンのクリック
+    if (pwaDismissButton) {
+        pwaDismissButton.addEventListener('click', () => {
+            if (pwaInstallBanner) {
+                pwaInstallBanner.classList.add('hidden');
+            }
+            localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+            console.log('[PWA] Install banner dismissed');
+        });
     }
 }
 

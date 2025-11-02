@@ -217,7 +217,7 @@ async function displayTrailer(youtubeKey, allowUnmuted = false) {
             rel: 0,
             controls: 0,
             modestbranding: 1,
-            mute: 1, // onReadyで音声設定を適用するため、最初はミュート
+            mute: (state.isIOSSafari && allowUnmuted) ? 0 : 1, // iOS SafariでallowUnmuted=trueの場合は音声ON
             iv_load_policy: 3, // アノテーションを非表示
             disablekb: 1, // キーボード操作を無効化
             playsinline: 1, // モバイルでインライン再生
@@ -1050,6 +1050,17 @@ async function initializeApp() {
     }
 
     setupUIControls();
+
+    // iOS Safari用: YouTube IFrame APIを事前にロード
+    if (state.isIOSSafari) {
+        console.log('iOS Safari検出: YouTube IFrame APIを事前にロードします...');
+        try {
+            await loadYoutubeApiScript();
+            console.log('iOS Safari: YouTube IFrame APIのロードが完了しました');
+        } catch (error) {
+            console.warn('iOS Safari: YouTube IFrame APIのロードに失敗しました:', error);
+        }
+    }
 
     // iOS Safari用: 最初の動画データとYouTubeキーを事前取得
     if (state.isIOSSafari) {

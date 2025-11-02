@@ -486,6 +486,17 @@ function setupUIControls() {
             }
         });
     });
+
+    // 画面サイズ変更時の処理
+    window.addEventListener('resize', () => {
+        const isPortraitMobile = window.innerWidth <= 720;
+
+        // 縦レイアウトに切り替わった場合、UIを強制的に表示
+        if (isPortraitMobile && !isUIVisible) {
+            isManuallyHidden = false;
+            showUI(true);
+        }
+    });
 }
 
 async function loadAndDisplayTrailer(index) {

@@ -147,15 +147,21 @@ body {
     position: absolute;
     inset: 0;
     pointer-events: none;
+    opacity: 0.4;
     background-image:
-        repeating-radial-gradient(circle at 17% 32%, rgba(255, 255, 255, 0.15) 0%, transparent 1px),
-        repeating-radial-gradient(circle at 82% 67%, rgba(255, 255, 255, 0.12) 0%, transparent 1px),
-        repeating-radial-gradient(circle at 45% 78%, rgba(255, 255, 255, 0.13) 0%, transparent 1px),
-        repeating-radial-gradient(circle at 63% 21%, rgba(255, 255, 255, 0.11) 0%, transparent 1px);
-    background-size: 3px 3px, 4px 4px, 2px 2px, 5px 5px;
-    background-position: 0 0, 1px 1px, 2px 0, 0 2px;
-    opacity: 0.08;
-    animation: grain 0.4s steps(4) infinite;
+        repeating-linear-gradient(
+            0deg,
+            rgba(255, 255, 255, 0) 0px,
+            rgba(255, 255, 255, 0.03) 1px,
+            rgba(255, 255, 255, 0) 2px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0) 0px,
+            rgba(255, 255, 255, 0.03) 1px,
+            rgba(255, 255, 255, 0) 2px
+        );
+    animation: grain 0.2s steps(20) infinite;
 }
 
 .film-grain::after {
@@ -163,12 +169,13 @@ body {
     position: absolute;
     inset: 0;
     background-image:
-        repeating-radial-gradient(circle at 31% 43%, rgba(255, 255, 255, 0.1) 0%, transparent 1px),
-        repeating-radial-gradient(circle at 76% 89%, rgba(255, 255, 255, 0.09) 0%, transparent 1px),
-        repeating-radial-gradient(circle at 12% 56%, rgba(255, 255, 255, 0.11) 0%, transparent 1px);
-    background-size: 4px 4px, 3px 3px, 5px 5px;
-    background-position: 1px 2px, 3px 1px, 0 3px;
-    animation: grain-shift 0.6s steps(3) infinite reverse;
+        repeating-linear-gradient(
+            45deg,
+            rgba(255, 255, 255, 0) 0px,
+            rgba(255, 255, 255, 0.05) 1px,
+            rgba(255, 255, 255, 0) 3px
+        );
+    animation: grain-shift 0.3s steps(15) infinite reverse;
 }
 
 @keyframes grain {

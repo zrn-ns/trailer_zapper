@@ -82,6 +82,7 @@ const playerShell = document.querySelector('.player-shell');
 const startModal = document.getElementById('start-modal');
 const startButton = document.getElementById('start-button');
 const dimmingOverlay = document.getElementById('dimming-overlay');
+const theaterScreen = document.getElementById('theater-screen');
 
 // --- UI更新関数 ---
 
@@ -695,8 +696,13 @@ async function initializeApp() {
         populateGenreFilterUI();
     }
 
+    // 初期状態: UIレイヤーを非表示にする
+    if (uiLayer) {
+        uiLayer.classList.add('startup-hidden');
+    }
+
     setupUIControls();
-    if (startModal && startButton && dimmingOverlay) {
+    if (startModal && startButton && dimmingOverlay && theaterScreen) {
         startModal.classList.remove('hidden');
         startButton.addEventListener('click', () => {
             startButton.disabled = true;
@@ -715,6 +721,15 @@ async function initializeApp() {
                 if (uiToggleButton) {
                     uiToggleButton.textContent = 'UI表示';
                 }
+
+                // スクリーンを非表示にしてUIレイヤーを表示
+                if (theaterScreen) {
+                    theaterScreen.classList.add('hidden');
+                }
+                if (uiLayer) {
+                    uiLayer.classList.remove('startup-hidden');
+                }
+
                 hideUI(true);
                 updateAndFetchMovies(true);
 

@@ -174,6 +174,11 @@ body {
     transition: opacity 0.4s ease, transform 0.5s ease;
 }
 
+.ui-layer.startup-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
 .ui-layer.ui-hidden {
     opacity: 0;
     transform: translateY(20px);
@@ -435,6 +440,53 @@ body {
     display: flex;
     gap: 20px;
     width: min(640px, 100%);
+}
+
+/* 映画館スクリーン背景 */
+.theater-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 98;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    transition: opacity 0.8s ease-out;
+}
+
+.theater-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.theater-screen__frame {
+    position: relative;
+    width: 85%;
+    max-width: 1200px;
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    border: 3px solid rgba(139, 69, 19, 0.3);
+    box-shadow:
+        0 0 40px rgba(0, 0, 0, 0.8),
+        inset 0 0 80px rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+}
+
+.theater-screen__curtain {
+    position: absolute;
+    inset: 0;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            rgba(80, 20, 20, 0.4) 0px,
+            rgba(100, 30, 30, 0.4) 40px,
+            rgba(80, 20, 20, 0.4) 80px
+        ),
+        linear-gradient(180deg, rgba(60, 15, 15, 0.3) 0%, rgba(40, 10, 10, 0.3) 100%);
+    pointer-events: none;
+    opacity: 0.6;
+    border-radius: 8px;
 }
 
 /* 暗転オーバーレイ（映画館の照明が落ちる演出） */

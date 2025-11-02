@@ -415,8 +415,8 @@ function handleYoutubeStateChange(event) {
             applySoundPreference();
         }
 
-        // iOS Safari: 再生中は再生再開ボタンを非表示
-        if (state.isIOSSafari && iosUnmuteButton && iosUnmuteButton.dataset.mode === 'resume') {
+        // 再生中は再生再開ボタンを非表示
+        if (iosUnmuteButton && iosUnmuteButton.dataset.mode === 'resume') {
             iosUnmuteButton.style.display = 'none';
         }
 
@@ -428,8 +428,8 @@ function handleYoutubeStateChange(event) {
         state.isPaused = true;
         updatePauseButton();
 
-        // iOS Safari: 再生停止時に再生再開ボタンを表示
-        if (state.isIOSSafari && iosUnmuteButton) {
+        // 再生停止時に再生再開ボタンを表示
+        if (iosUnmuteButton) {
             iosUnmuteButton.dataset.mode = 'resume';
             const icon = iosUnmuteButton.querySelector('.unmute-icon');
             const text = iosUnmuteButton.querySelector('.unmute-text');
@@ -657,14 +657,14 @@ function setupUIControls() {
 
             if (mode === 'unmute') {
                 // 音声ONモード
-                console.log('iOS Safari: ユーザーが音声ONをリクエスト');
+                console.log('ユーザーが音声ONをリクエスト');
                 state.iosUserWantsSound = true;
                 applySoundPreference();
                 // ボタンを非表示
                 iosUnmuteButton.style.display = 'none';
             } else if (mode === 'resume') {
                 // 再生再開モード
-                console.log('iOS Safari: ユーザーが再生再開をリクエスト');
+                console.log('ユーザーが再生再開をリクエスト');
                 if (state.youtubePlayer && typeof state.youtubePlayer.playVideo === 'function') {
                     state.youtubePlayer.playVideo();
                     // ボタンを非表示

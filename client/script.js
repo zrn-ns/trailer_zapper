@@ -490,7 +490,7 @@ function updatePauseButton() {
     if (!pauseButton) return;
     const hasPlayer = !!state.youtubePlayer;
     pauseButton.disabled = !hasPlayer;
-    const label = state.isPaused || !hasPlayer ? '再生' : '一時停止';
+    const label = state.isPaused || !hasPlayer ? '▶' : '⏸';
     pauseButton.textContent = label;
 }
 
@@ -592,7 +592,7 @@ function handleKeyboardShortcuts(event) {
 function updateFullscreenButton() {
     if (!fullscreenButton) return;
     const active = document.fullscreenElement !== null;
-    fullscreenButton.textContent = active ? '全画面解除' : '全画面';
+    fullscreenButton.textContent = active ? '⊟' : '⛶';
 }
 
 async function toggleFullscreen() {

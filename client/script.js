@@ -275,9 +275,11 @@ async function displayTrailer(youtubeKey) {
             playerOverlay.classList.remove('hidden');
         }
 
-        // ユーザーが音声ONにしていた場合は音声ONで再生
-        if (state.iosUserWantsSound) {
+        // スタンドアロンモードまたはユーザーが音声ONにしていた場合は音声ONで再生
+        if (state.isStandalone || state.iosUserWantsSound) {
             state.youtubePlayer.unMute();
+            state.youtubePlayer.setVolume(100);
+            console.log('[PWA] 既存プレーヤー: 音声ON');
         } else {
             state.youtubePlayer.mute();
         }
@@ -317,7 +319,12 @@ async function displayTrailer(youtubeKey) {
         },
         events: {
             onReady: (event) => {
-                if (state.isIOSSafari) {
+                // スタンドアロンモード（PWA）の場合
+                if (state.isStandalone) {
+                    console.log('[PWA] スタンドアロンモード: 音声付きで再生開始');
+                    applySoundPreference();
+                    event.target.playVideo();
+                } else if (state.isIOSSafari) {
                     // iOS Safariでは常にミュートで再生開始
                     console.log('iOS Safari: ミュートで再生開始');
                     event.target.mute();
@@ -390,6 +397,17 @@ function showLoadingMessage(message) {
 
 function applySoundPreference() {
     if (!state.youtubePlayer || typeof state.youtubePlayer.isMuted !== 'function') {
+        return;
+    }
+    // スタンドアロンモード（PWA）では音声制限が緩和されているため、通常の音声設定を適用
+    if (state.isStandalone) {
+        if (state.isSoundEnabled || state.iosUserWantsSound) {
+            state.youtubePlayer.unMute();
+            state.youtubePlayer.setVolume(100);
+            console.log('[PWA] スタンドアロンモード: 音声ON');
+        } else {
+            state.youtubePlayer.mute();
+        }
         return;
     }
     // iOS Safariでユーザーが音声をリクエストした場合
@@ -1193,7 +1211,15 @@ async function initializeApp() {
 
             startButton.disabled = true;
 
+            // スタンドアロンモードの場合、音声を有効化
+            if (state.isStandalone) {
+                state.iosUserWantsSound = true;
+                console.log('[PWA] スタンドアロンモード: 音声を有効化');
+            }
+
             // ブザー音を再生（ユーザーインタラクション直後なので再生可能）
+            // PWA再起動後もロードを確実に実行
+            buzzerAudio.load();
             buzzerAudio.play().catch((error) => {
                 console.warn('ブザー音の再生に失敗しました:', error);
             });

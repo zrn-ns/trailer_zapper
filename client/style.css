@@ -1044,6 +1044,11 @@ body {
         overflow-y: auto;
     }
 
+    /* ヘッダー（アプリ名・リード文）を非表示 */
+    .hero-header {
+        display: none;
+    }
+
     .immersive-stage {
         min-height: auto;
         display: flex;

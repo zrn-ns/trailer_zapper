@@ -5,8 +5,7 @@
   "scripts": {
     "start:server": "cd server && env -u TMDB_API_KEY node index.js",
     "start:client": "python3 -m http.server 8000 --directory client",
-    "dev": "echo 'Starting Trailer Zapper...' && echo 'Server: http://localhost:3000' && echo 'Client: http://localhost:8000' && npm run start:server & npm run start:client",
-    "preinstall": "cd server && npm install"
+    "dev": "echo 'Starting Trailer Zapper...' && echo 'Server: http://localhost:3000' && echo 'Client: http://localhost:8000' && npm run start:server & npm run start:client"
   },
   "keywords": ["tmdb", "trailer", "movie", "cinema"],
   "author": "@zrnbtn",

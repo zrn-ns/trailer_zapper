@@ -739,6 +739,10 @@ async function initializeApp() {
     });
 
     immersiveStage.addEventListener('click', (event) => {
+        // 縦レイアウト（≤720px）ではUIは常に表示するため、切り替え機能を無効化
+        const isPortraitMobile = window.innerWidth <= 720;
+        if (isPortraitMobile) return;
+
         // クリックされた要素がUI要素でない場合、UIの表示/非表示を切り替える
         if (
             !uiLayer.contains(event.target) &&

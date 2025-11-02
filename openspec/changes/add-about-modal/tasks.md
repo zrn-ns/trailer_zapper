@@ -1,39 +1,39 @@
 # Implementation Tasks
 
 ## Task 1: 既存のライセンス表記を削除
-- [ ] `client/index.html`から`.tmdb-attribution`と`.audio-attribution`のHTMLを削除
-- [ ] `client/style.css`から`.tmdb-attribution`と`.audio-attribution`のスタイルを削除
+- [x] `client/index.html`から`.tmdb-attribution`と`.audio-attribution`のHTMLを削除
+- [x] `client/style.css`から`.tmdb-attribution`と`.audio-attribution`のスタイルを削除
 - **Verification**: 既存のライセンス表記が画面から消えていること
 
 ## Task 2: 情報ボタンをUIに追加
-- [ ] `client/index.html`のUI上部（ヘッダー付近）に情報ボタンを追加
-- [ ] ボタンに適切なアイコンまたはテキスト（「情報」「ⓘ」など）を配置
-- [ ] `client/style.css`に情報ボタンのスタイルを追加
+- [x] `client/index.html`のUI上部（ヘッダー付近）に情報ボタンを追加
+- [x] ボタンに適切なアイコンまたはテキスト（「情報」「ⓘ」など）を配置
+- [x] `client/style.css`に情報ボタンのスタイルを追加
 - **Verification**: 情報ボタンが表示されること
 
 ## Task 3: 情報モーダルのHTMLを作成
-- [ ] `client/index.html`に情報モーダルのマークアップを追加
-- [ ] モーダル内に以下のセクションを配置:
+- [x] `client/index.html`に情報モーダルのマークアップを追加
+- [x] モーダル内に以下のセクションを配置:
   - TMDBロゴとデータ提供表記
   - OtoLogic音声ライセンス (CC BY 4.0) とリンク
   - 作者情報
   - ソースコードリンク（GitHub）
-- [ ] モーダルヘッダーに閉じるボタンを配置
-- [ ] バックドロップ要素を追加
+- [x] モーダルヘッダーに閉じるボタンを配置
+- [x] バックドロップ要素を追加
 - **Verification**: モーダルのHTMLが正しく構造化されていること
 
 ## Task 4: 情報モーダルのスタイルを実装
-- [ ] `client/style.css`に情報モーダルのスタイルを追加
-- [ ] 既存の`.genre-filter-modal`と統一感のあるデザインにする
-- [ ] モバイル対応のレスポンシブスタイルを追加
-- [ ] スクロール可能なコンテンツエリアを実装
+- [x] `client/style.css`に情報モーダルのスタイルを追加
+- [x] 既存の`.genre-filter-modal`と統一感のあるデザインにする
+- [x] モバイル対応のレスポンシブスタイルを追加
+- [x] スクロール可能なコンテンツエリアを実装
 - **Verification**: モーダルが視覚的に適切に表示されること
 
 ## Task 5: モーダル開閉ロジックを実装
-- [ ] `client/script.js`に情報ボタンクリック時のモーダル表示ロジックを追加
-- [ ] 閉じるボタンクリック時のモーダル非表示ロジックを追加
-- [ ] バックドロップクリック時のモーダル非表示ロジックを追加
-- [ ] モーダル表示時のキーボード操作（Escキー）対応を追加
+- [x] `client/script.js`に情報ボタンクリック時のモーダル表示ロジックを追加
+- [x] 閉じるボタンクリック時のモーダル非表示ロジックを追加
+- [x] バックドロップクリック時のモーダル非表示ロジックを追加
+- [x] モーダル表示時のキーボード操作（Escキー）対応を追加
 - **Verification**: モーダルが正しく開閉できること
 
 ## Task 6: クロスブラウザ・デバイステスト

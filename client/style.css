@@ -603,18 +603,38 @@ body {
 
     .immersive-stage {
         min-height: auto;
+        display: flex;
+        flex-direction: column;
     }
 
     .video-layer {
-        inset: 0;
-        padding: clamp(16px, 8vw, 32px);
-        opacity: 1.0; /* テスト用: 0.55から変更 */
+        position: relative;
+        inset: auto;
+        padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 16px max(16px, env(safe-area-inset-left));
+        opacity: 1.0;
+    }
+
+    .player-shell {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
     }
 
     .ui-layer {
-        padding: 24px 18px 48px;
+        position: relative;
+        inset: auto;
+        padding: 24px max(18px, env(safe-area-inset-right)) max(48px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
         gap: 32px;
         min-height: auto;
+        background: var(--bg-deep);
+    }
+
+    .ui-toggle-button {
+        top: max(16px, env(safe-area-inset-top));
+        right: max(16px, env(safe-area-inset-right));
+        min-width: 48px;
+        min-height: 48px;
+        padding: 12px 20px;
     }
 
     .info-panel {

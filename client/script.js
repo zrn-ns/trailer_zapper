@@ -774,6 +774,16 @@ async function initializeApp() {
 
             // 暗転アニメーション完了後、アプリケーションを開始
             setTimeout(() => {
+                // 最初に暗転オーバーレイを強制的に非表示
+                if (dimmingOverlay) {
+                    // アニメーションを停止してスタイルをクリア
+                    dimmingOverlay.style.animation = 'none';
+                    dimmingOverlay.style.background = 'rgba(0, 0, 0, 0)';
+                    dimmingOverlay.style.display = 'none';
+                    dimmingOverlay.style.opacity = '0';
+                    dimmingOverlay.style.visibility = 'hidden';
+                }
+
                 state.hasStarted = true;
                 startModal.classList.add('hidden');
                 setSoundEnabled(true);
@@ -806,12 +816,6 @@ async function initializeApp() {
                     hideUI(true);
                 }
                 updateAndFetchMovies(true);
-
-                // オーバーレイをフェードアウトして映画を表示
-                setTimeout(() => {
-                    dimmingOverlay.style.transition = 'opacity 0.8s ease-out';
-                    dimmingOverlay.style.opacity = '0';
-                }, 300);
             }, 500);
         }, { once: true });
     } else {

@@ -834,14 +834,17 @@ async function initializeApp() {
 
             // 暗転アニメーション完了後、アプリケーションを開始
             setTimeout(() => {
-                // 最初に暗転オーバーレイを強制的に非表示
+                // 暗転オーバーレイをゆっくりフェードアウト
                 if (dimmingOverlay) {
-                    // アニメーションを停止してスタイルをクリア
                     dimmingOverlay.style.animation = 'none';
-                    dimmingOverlay.style.background = 'rgba(0, 0, 0, 0)';
-                    dimmingOverlay.style.display = 'none';
+                    dimmingOverlay.style.transition = 'opacity 0.8s ease-out';
                     dimmingOverlay.style.opacity = '0';
-                    dimmingOverlay.style.visibility = 'hidden';
+
+                    // フェードアウト完了後に完全に非表示
+                    setTimeout(() => {
+                        dimmingOverlay.style.display = 'none';
+                        dimmingOverlay.style.visibility = 'hidden';
+                    }, 800);
                 }
 
                 state.hasStarted = true;

@@ -61,7 +61,6 @@ const state = {
     isPaused: false,
     isSoundEnabled: false,
     hasStarted: false,
-    isTouchDevice: false, // タッチデバイス検出フラグ
 };
 
 // --- DOM要素 ---
@@ -152,7 +151,6 @@ async function displayTrailer(youtubeKey) {
             controls: 0,
             modestbranding: 1,
             mute: 1, // onReadyで音声設定を適用するため、最初はミュート
-            playsinline: 1, // iOSでインライン再生を有効化
         },
         events: {
             onReady: (event) => {
@@ -320,13 +318,6 @@ function handleKeyboardShortcuts(event) {
         return;
     }
 
-    // タッチデバイスではEscapeキー以外のキーボードショートカットを無効化
-    // （外部キーボード接続時でも基本的にタッチ操作を優先）
-    const isEscapeKey = event.key === 'Escape';
-    if (state.isTouchDevice && !isEscapeKey) {
-        return;
-    }
-
     if (!state.hasStarted) {
         if ((event.key === ' ' || event.key === 'Enter') && startButton && !startModal?.classList.contains('hidden')) {
             event.preventDefault();
@@ -436,8 +427,8 @@ function hideUI(force = false) {
 function setupUIControls() {
     document.addEventListener('keydown', handleKeyboardShortcuts, { passive: false });
 
-    // UI表示とタイムアウト設定を共通化
-    const handleUIInteraction = () => {
+    // マウス移動でUIを表示し、3秒後に自動非表示
+    document.addEventListener('mousemove', () => {
         if (!state.hasStarted) return;
         if (isManuallyHidden) return;
         showUI();
@@ -453,16 +444,7 @@ function setupUIControls() {
                 hideUI();
             }
         }, 3000);
-    };
-
-    // マウス移動でUIを表示し、3秒後に自動非表示
-    document.addEventListener('mousemove', handleUIInteraction);
-
-    // タッチイベントでUIを表示（タッチデバイス用）
-    if (state.isTouchDevice) {
-        document.addEventListener('touchstart', handleUIInteraction, { passive: true });
-        document.addEventListener('touchmove', handleUIInteraction, { passive: true });
-    }
+    });
 
     // インタラクティブ要素のホバー時はUIを維持
     const interactiveElements = document.querySelectorAll(
@@ -492,87 +474,6 @@ function setupUIControls() {
             }
         });
     });
-}
-
-function setupSwipeGestures() {
-    if (!state.isTouchDevice) return;
-
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let touchEndX = 0;
-    let touchEndY = 0;
-    let isSwiping = false;
-
-    const minSwipeDistance = 50; // 最小スワイプ距離（ピクセル）
-
-    const handleTouchStart = (event) => {
-        // UI要素でのタッチは無視
-        const target = event.target;
-        if (target.closest('button, input, label, .control-panel, .info-panel, #genre-filter-list')) {
-            isSwiping = false;
-            return;
-        }
-
-        isSwiping = true;
-        const touch = event.touches[0];
-        touchStartX = touch.clientX;
-        touchStartY = touch.clientY;
-    };
-
-    const handleTouchMove = (event) => {
-        if (!isSwiping) return;
-        const touch = event.touches[0];
-        touchEndX = touch.clientX;
-        touchEndY = touch.clientY;
-    };
-
-    const handleTouchEnd = () => {
-        if (!isSwiping) return;
-        isSwiping = false;
-
-        const deltaX = touchEndX - touchStartX;
-        const deltaY = touchEndY - touchStartY;
-        const absX = Math.abs(deltaX);
-        const absY = Math.abs(deltaY);
-
-        // 水平方向のスワイプが垂直方向より大きい場合のみ処理
-        if (absX > absY && absX > minSwipeDistance) {
-            if (deltaX > 0) {
-                // 右スワイプ: 前へ
-                console.log('スワイプ: 前の動画へ');
-                playPrev();
-            } else {
-                // 左スワイプ: 次へ
-                console.log('スワイプ: 次の動画へ');
-                playNext();
-            }
-        }
-    };
-
-    document.addEventListener('touchstart', handleTouchStart, { passive: true });
-    document.addEventListener('touchmove', handleTouchMove, { passive: true });
-    document.addEventListener('touchend', handleTouchEnd, { passive: true });
-}
-
-function handleOrientationChange() {
-    // 画面回転時にUIを一時的に再表示
-    if (state.hasStarted && !isManuallyHidden) {
-        showUI();
-
-        // レイアウトの再計算をトリガー
-        setTimeout(() => {
-            if (uiTimeout) {
-                clearTimeout(uiTimeout);
-            }
-
-            // 3秒後に再度非表示
-            uiTimeout = setTimeout(() => {
-                if (!isManuallyHidden && !isInteracting) {
-                    hideUI();
-                }
-            }, 3000);
-        }, 100);
-    }
 }
 
 async function loadAndDisplayTrailer(index) {
@@ -761,11 +662,6 @@ function handleIgnoreClick() {
 
 async function initializeApp() {
     console.log('アプリケーションを初期化します...');
-
-    // タッチデバイス検出
-    state.isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    console.log(`タッチデバイス検出: ${state.isTouchDevice ? 'タッチデバイス' : 'デスクトップ'}`);
-
     // イベントリスナー
     nextButton.addEventListener('click', playNext);
     prevButton.addEventListener('click', playPrev);
@@ -866,15 +762,6 @@ async function initializeApp() {
     }
 
     setupUIControls();
-    setupSwipeGestures();
-
-    // 画面回転イベントのリスナー
-    window.addEventListener('resize', handleOrientationChange);
-    // 古いブラウザ対応
-    if ('onorientationchange' in window) {
-        window.addEventListener('orientationchange', handleOrientationChange);
-    }
-
     if (startModal && startButton && dimmingOverlay && theaterScreen) {
         startModal.classList.remove('hidden');
         startButton.addEventListener('click', () => {
@@ -890,9 +777,21 @@ async function initializeApp() {
                 state.hasStarted = true;
                 startModal.classList.add('hidden');
                 setSoundEnabled(true);
-                isManuallyHidden = true;
-                if (uiToggleButton) {
-                    uiToggleButton.textContent = 'UI表示';
+
+                // モバイルでは最初からUIを表示（マウス移動がないため）
+                // デスクトップでは非表示にして、マウス移動で表示
+                const isMobile = window.innerWidth <= 720;
+
+                if (isMobile) {
+                    isManuallyHidden = false;
+                    if (uiToggleButton) {
+                        uiToggleButton.textContent = 'UI非表示';
+                    }
+                } else {
+                    isManuallyHidden = true;
+                    if (uiToggleButton) {
+                        uiToggleButton.textContent = 'UI表示';
+                    }
                 }
 
                 // スクリーンを非表示にしてUIレイヤーを表示
@@ -903,7 +802,9 @@ async function initializeApp() {
                     uiLayer.classList.remove('startup-hidden');
                 }
 
-                hideUI(true);
+                if (!isMobile) {
+                    hideUI(true);
+                }
                 updateAndFetchMovies(true);
 
                 // オーバーレイをフェードアウトして映画を表示

@@ -67,6 +67,7 @@ const state = {
     sortOrder: 'popularity.desc',
     lastAutoSkipTime: null,
     isRetrying: false,
+    isIOSSafari: false, // iOS Safari検出フラグ
 };
 
 // --- DOM要素 ---
@@ -106,6 +107,27 @@ buzzerAudio.addEventListener('error', (e) => {
 });
 // プリロードを開始
 buzzerAudio.load();
+
+// --- iOS Safari検出 ---
+/**
+ * iOS Safariを検出する関数
+ * iOS Safariでは、ミュートされていない動画の自動再生が許可されないため、
+ * 検出して特別な処理を行う必要があります。
+ * @returns {boolean} iOS Safariの場合true
+ */
+function detectIOSSafari() {
+    const ua = navigator.userAgent;
+    // iPhone、iPad、iPod + Safari、かつChromeやFirefoxではない
+    return /iPhone|iPad|iPod/.test(ua) &&
+           /Safari/.test(ua) &&
+           !/CriOS|FxiOS/.test(ua);
+}
+
+// アプリ起動時にiOS Safariを検出
+state.isIOSSafari = detectIOSSafari();
+if (state.isIOSSafari) {
+    console.log('iOS Safari検出: 動画は常にミュートで再生されます');
+}
 
 // --- UI更新関数 ---
 
@@ -186,8 +208,17 @@ async function displayTrailer(youtubeKey) {
         },
         events: {
             onReady: (event) => {
-                applySoundPreference();
-                event.target.playVideo();
+                // iOS Safariでは、ミュートされていない動画の自動再生は許可されない
+                // そのため、強制的にミュートしてから再生開始
+                if (state.isIOSSafari) {
+                    console.log('iOS Safari: 強制ミュートで再生開始');
+                    event.target.mute();
+                    event.target.playVideo();
+                } else {
+                    // 非iOS Safariでは通常通り音声設定を適用
+                    applySoundPreference();
+                    event.target.playVideo();
+                }
             },
             onError: handleYoutubeError,
             onStateChange: handleYoutubeStateChange,
@@ -245,6 +276,12 @@ function applySoundPreference() {
     if (!state.youtubePlayer || typeof state.youtubePlayer.isMuted !== 'function') {
         return;
     }
+    // iOS Safariでは自動再生のために常にミュートを維持
+    if (state.isIOSSafari) {
+        state.youtubePlayer.mute();
+        return;
+    }
+    // 非iOS Safariでは通常通り音声設定を適用
     if (state.isSoundEnabled) {
         state.youtubePlayer.unMute();
         state.youtubePlayer.setVolume(100);

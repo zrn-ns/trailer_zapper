@@ -74,6 +74,7 @@ const state = {
     lastAutoSkipTime: null,
     isRetrying: false,
     isIOSSafari: false, // iOS Safari検出フラグ
+    iosUserWantsSound: false, // iOS Safariでユーザーが音声をリクエストしたかどうか
 };
 
 // --- DOM要素 ---
@@ -103,6 +104,7 @@ const startModal = document.getElementById('start-modal');
 const startButton = document.getElementById('start-button');
 const dimmingOverlay = document.getElementById('dimming-overlay');
 const theaterScreen = document.getElementById('theater-screen');
+const iosUnmuteButton = document.getElementById('ios-unmute-button');
 
 // --- ブザー音の設定 ---
 const buzzerAudio = new Audio('/assets/sounds/opening_buzzer.mp3');
@@ -133,6 +135,10 @@ function detectIOSSafari() {
 state.isIOSSafari = detectIOSSafari();
 if (state.isIOSSafari) {
     console.log('iOS Safari検出: 動画は常にミュートで再生されます');
+    // iOS Safari用のミュート解除ボタンを表示
+    if (iosUnmuteButton) {
+        iosUnmuteButton.style.display = 'inline-block';
+    }
 }
 
 // --- UI更新関数 ---
@@ -280,6 +286,12 @@ function showLoadingMessage(message) {
 
 function applySoundPreference() {
     if (!state.youtubePlayer || typeof state.youtubePlayer.isMuted !== 'function') {
+        return;
+    }
+    // iOS Safariでユーザーが音声をリクエストした場合
+    if (state.isIOSSafari && state.iosUserWantsSound) {
+        state.youtubePlayer.unMute();
+        state.youtubePlayer.setVolume(100);
         return;
     }
     // iOS Safariでは自動再生のために常にミュートを維持
@@ -591,6 +603,24 @@ function hideUI(force = false) {
 }
 
 function setupUIControls() {
+    // iOS Safari用のミュート解除ボタン
+    if (iosUnmuteButton) {
+        iosUnmuteButton.addEventListener('click', () => {
+            state.iosUserWantsSound = !state.iosUserWantsSound;
+
+            if (state.iosUserWantsSound) {
+                console.log('iOS Safari: ユーザーが音声ONをリクエスト');
+                iosUnmuteButton.textContent = '🔊 音声OFF';
+            } else {
+                console.log('iOS Safari: ユーザーが音声OFFをリクエスト');
+                iosUnmuteButton.textContent = '🔇 音声ON';
+            }
+
+            // すぐに音声設定を適用
+            applySoundPreference();
+        });
+    }
+
     document.addEventListener('keydown', handleKeyboardShortcuts, { passive: false });
 
     // マウス移動でUIを表示し、3秒後に自動非表示

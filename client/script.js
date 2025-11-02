@@ -89,6 +89,15 @@ const startButton = document.getElementById('start-button');
 const dimmingOverlay = document.getElementById('dimming-overlay');
 const theaterScreen = document.getElementById('theater-screen');
 
+// --- ブザー音の設定 ---
+const buzzerAudio = new Audio('/assets/sounds/opening_buzzer.mp3');
+buzzerAudio.preload = 'auto';
+buzzerAudio.addEventListener('error', (e) => {
+    console.warn('ブザー音の読み込みに失敗しました:', e);
+});
+// プリロードを開始
+buzzerAudio.load();
+
 // --- UI更新関数 ---
 
 function updateButtonStates() {
@@ -856,6 +865,11 @@ async function initializeApp() {
         startModal.classList.remove('hidden');
         startButton.addEventListener('click', () => {
             startButton.disabled = true;
+
+            // ブザー音を再生（エラーが発生してもUIをブロックしない）
+            buzzerAudio.play().catch((error) => {
+                console.warn('ブザー音の再生に失敗しました:', error);
+            });
 
             // 映画館のような暗転演出を開始
             startModal.classList.add('fade-out');

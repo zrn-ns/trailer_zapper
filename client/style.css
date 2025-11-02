@@ -60,6 +60,9 @@ body {
     position: absolute;
     top: clamp(16px, 4vw, 32px);
     right: clamp(16px, 4vw, 32px);
+    /* iOS Safe Areaのサポート */
+    top: max(clamp(16px, 4vw, 32px), env(safe-area-inset-top));
+    right: max(clamp(16px, 4vw, 32px), env(safe-area-inset-right));
     z-index: 3;
     padding: 10px 18px;
     border-radius: 999px;
@@ -148,6 +151,11 @@ body {
     z-index: 2;
     min-height: 100vh;
     padding: clamp(24px, 4vw, 56px);
+    /* iOS Safe Areaのサポート */
+    padding-top: max(clamp(24px, 4vw, 56px), env(safe-area-inset-top));
+    padding-right: max(clamp(24px, 4vw, 56px), env(safe-area-inset-right));
+    padding-bottom: max(clamp(24px, 4vw, 56px), env(safe-area-inset-bottom));
+    padding-left: max(clamp(24px, 4vw, 56px), env(safe-area-inset-left));
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -613,8 +621,57 @@ body {
 
     .ui-layer {
         padding: 24px 18px 48px;
+        /* iOS Safe Areaのサポート（モバイル） */
+        padding-top: max(24px, env(safe-area-inset-top));
+        padding-right: max(18px, env(safe-area-inset-right));
+        padding-bottom: max(48px, env(safe-area-inset-bottom));
+        padding-left: max(18px, env(safe-area-inset-left));
         gap: 32px;
         min-height: auto;
+    }
+
+    /* タッチターゲットサイズの最適化（最小44x44px） */
+    .ui-toggle-button {
+        min-width: 48px;
+        min-height: 48px;
+        padding: 14px 20px;
+        font-size: 0.85rem;
+    }
+
+    .primary-button {
+        min-height: 44px;
+        padding: 14px 18px;
+        font-size: 0.95rem;
+    }
+
+    .ghost-button {
+        min-height: 44px;
+        padding: 14px 20px;
+    }
+
+    #ignore-button {
+        min-height: 44px;
+        padding: 12px 22px;
+    }
+
+    .provider-filters label {
+        min-height: 44px;
+        padding: 14px 16px;
+    }
+
+    .genre-tag {
+        min-height: 36px;
+        padding: 8px 18px;
+    }
+
+    /* ボタン間のスペーシング */
+    .controls {
+        width: 100%;
+        gap: 12px;
+    }
+
+    .info-actions {
+        gap: 12px;
     }
 
     .info-panel {
@@ -643,8 +700,21 @@ body {
         align-self: center;
     }
 
-    .controls {
+    /* モバイル用ビデオプレーヤー最適化 */
+    .player-shell {
         width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
+    }
+
+    #player-container {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* iOSフルスクリーン対応 */
+    #player-container iframe {
+        -webkit-playsinline: true;
+        playsinline: true;
     }
 }
 

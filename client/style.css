@@ -701,12 +701,6 @@ body {
     }
 
     /* モバイル用ビデオプレーヤー最適化 */
-    .player-shell {
-        width: 100%;
-        height: auto;
-        aspect-ratio: 16 / 9;
-    }
-
     #player-container {
         -webkit-overflow-scrolling: touch;
     }

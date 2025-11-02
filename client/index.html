@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trailer Zapper</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
     <div id="immersive-stage" class="immersive-stage">
@@ -17,6 +17,11 @@
                 <div id="player-overlay" class="player-overlay hidden">
                     <div class="film-grain"></div>
                 </div>
+                <!-- iOS Safari専用フローティングミュート解除ボタン -->
+                <button id="ios-unmute-button" class="ios-unmute-floating" style="display: none;">
+                    <span class="unmute-icon">🔇</span>
+                    <span class="unmute-text">タップして音声ON</span>
+                </button>
             </div>
         </div>
 
@@ -72,12 +77,6 @@
                 <button id="next-button" class="primary-button">次へ</button>
             </div>
         </div>
-
-        <!-- iOS Safari専用フローティングミュート解除ボタン -->
-        <button id="ios-unmute-button" class="ios-unmute-floating" style="display: none;">
-            <span class="unmute-icon">🔇</span>
-            <span class="unmute-text">タップして音声ON</span>
-        </button>
     </div>
     <!-- 映画館スクリーン背景 -->
     <div id="theater-screen" class="theater-screen"></div>

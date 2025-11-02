@@ -223,8 +223,13 @@ async function displayTrailer(youtubeKey) {
                     console.log('iOS Safari: ミュートで再生開始');
                     event.target.mute();
                     event.target.playVideo();
-                    // フローティングボタンを表示
+                    // フローティングボタンを音声ONモードで表示
                     if (iosUnmuteButton) {
+                        iosUnmuteButton.dataset.mode = 'unmute';
+                        const icon = iosUnmuteButton.querySelector('.unmute-icon');
+                        const text = iosUnmuteButton.querySelector('.unmute-text');
+                        if (icon) icon.textContent = '🔇';
+                        if (text) text.textContent = 'タップして音声ON';
                         iosUnmuteButton.style.display = 'flex';
                     }
                 } else {
@@ -389,6 +394,11 @@ function handleYoutubeStateChange(event) {
             applySoundPreference();
         }
 
+        // iOS Safari: 再生中は再生再開ボタンを非表示
+        if (state.isIOSSafari && iosUnmuteButton && iosUnmuteButton.dataset.mode === 'resume') {
+            iosUnmuteButton.style.display = 'none';
+        }
+
         // 再生開始時にオーバーレイを非表示（YouTube UIが見えるようになる）
         if (playerOverlay) {
             playerOverlay.classList.add('hidden');
@@ -396,6 +406,16 @@ function handleYoutubeStateChange(event) {
     } else if (event.data === YT.PlayerState.PAUSED) {
         state.isPaused = true;
         updatePauseButton();
+
+        // iOS Safari: 再生停止時に再生再開ボタンを表示
+        if (state.isIOSSafari && iosUnmuteButton) {
+            iosUnmuteButton.dataset.mode = 'resume';
+            const icon = iosUnmuteButton.querySelector('.unmute-icon');
+            const text = iosUnmuteButton.querySelector('.unmute-text');
+            if (icon) icon.textContent = '▶️';
+            if (text) text.textContent = 'タップして再生再開';
+            iosUnmuteButton.style.display = 'flex';
+        }
     } else if (event.data === YT.PlayerState.ENDED) {
         // 動画終了時にオーバーレイを表示（関連動画を隠す）
         if (playerOverlay) {
@@ -609,26 +629,27 @@ function hideUI(force = false) {
 }
 
 function setupUIControls() {
-    // iOS Safari用のミュート解除ボタン
+    // iOS Safari用のフローティングボタン（音声ON / 再生再開）
     if (iosUnmuteButton) {
         iosUnmuteButton.addEventListener('click', () => {
-            state.iosUserWantsSound = !state.iosUserWantsSound;
+            const mode = iosUnmuteButton.dataset.mode || 'unmute';
 
-            const icon = iosUnmuteButton.querySelector('.unmute-icon');
-            const text = iosUnmuteButton.querySelector('.unmute-text');
-
-            if (state.iosUserWantsSound) {
+            if (mode === 'unmute') {
+                // 音声ONモード
                 console.log('iOS Safari: ユーザーが音声ONをリクエスト');
-                if (icon) icon.textContent = '🔊';
-                if (text) text.textContent = 'タップして音声OFF';
-            } else {
-                console.log('iOS Safari: ユーザーが音声OFFをリクエスト');
-                if (icon) icon.textContent = '🔇';
-                if (text) text.textContent = 'タップして音声ON';
+                state.iosUserWantsSound = true;
+                applySoundPreference();
+                // ボタンを非表示
+                iosUnmuteButton.style.display = 'none';
+            } else if (mode === 'resume') {
+                // 再生再開モード
+                console.log('iOS Safari: ユーザーが再生再開をリクエスト');
+                if (state.youtubePlayer && typeof state.youtubePlayer.playVideo === 'function') {
+                    state.youtubePlayer.playVideo();
+                    // ボタンを非表示
+                    iosUnmuteButton.style.display = 'none';
+                }
             }
-
-            // すぐに音声設定を適用
-            applySoundPreference();
         });
     }
 

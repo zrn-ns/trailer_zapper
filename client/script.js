@@ -134,13 +134,13 @@ function detectIOSSafari() {
 // アプリ起動時にiOS Safariを検出
 state.isIOSSafari = detectIOSSafari();
 if (state.isIOSSafari) {
-    console.log('iOS Safari検出: 上映開始時に音声ONで再生します');
-    // iOS Safariの場合、デフォルトで音声をONにする
-    state.iosUserWantsSound = true;
+    console.log('iOS Safari検出: ミュートで自動再生します（音声ONボタンで切り替え可能）');
+    // iOS Safariの場合、デフォルトはミュート（自動再生ポリシーの制約により）
+    state.iosUserWantsSound = false;
     // iOS Safari用のミュート解除ボタンを表示
     if (iosUnmuteButton) {
         iosUnmuteButton.style.display = 'inline-block';
-        iosUnmuteButton.textContent = '🔊 音声OFF'; // 初期状態は音声ON
+        iosUnmuteButton.textContent = '🔇 音声ON'; // 初期状態はミュート
     }
 }
 
@@ -386,18 +386,8 @@ function handleYoutubeStateChange(event) {
         state.isPaused = false;
         updatePauseButton();
 
-        // iOS Safariの場合、再生が安定してから音声設定を適用
-        if (state.isIOSSafari && state.iosUserWantsSound) {
-            console.log('iOS Safari: 再生安定後に音声ONを試みます');
-            setTimeout(() => {
-                if (state.youtubePlayer && !state.isPaused) {
-                    console.log('iOS Safari: 音声ONに切り替え');
-                    state.youtubePlayer.unMute();
-                    state.youtubePlayer.setVolume(100);
-                }
-            }, 1000); // 1秒待ってから音声ON
-        } else if (!state.isIOSSafari) {
-            // 非iOS Safariでは即座に音声設定を適用
+        // iOS Safariでは音声設定は適用しない（ユーザーが明示的にボタンをタップしたときのみ）
+        if (!state.isIOSSafari) {
             applySoundPreference();
         }
 

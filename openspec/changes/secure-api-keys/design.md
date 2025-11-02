@@ -1,185 +1,185 @@
 # Design: API Key Security Implementation
 
-## 問題の定義
+## Problem Definition
 
-現在、TMDB APIキーが `script.js:9` にハードコードされており、以下のセキュリティリスクが存在します：
+Currently, the TMDB API key is hardcoded in `script.js:9`, creating the following security risks:
 
-1. **APIキーの露出**: クライアントサイドのJavaScriptに含まれるため、誰でもブラウザの開発者ツールで確認可能
-2. **悪用リスク**: 露出したAPIキーを第三者が取得し、レート制限の消費や不正利用が可能
-3. **キーローテーション困難**: APIキーを変更する場合、JavaScriptファイルの再配布が必要
+1. **API Key Exposure**: Included in client-side JavaScript, viewable by anyone through browser developer tools
+2. **Abuse Risk**: Third parties can obtain the exposed API key and consume rate limits or misuse it
+3. **Key Rotation Difficulty**: Changing the API key requires JavaScript file redistribution
 
-## アーキテクチャの選択
+## Architecture Selection
 
-### 検討したアプローチ
+### Approaches Considered
 
-#### 1. シンプルなバックエンドプロキシ（採用）
+#### 1. Simple Backend Proxy (Adopted)
 
-**概要**: Express.jsを使用した軽量プロキシサーバーを導入し、APIキーをサーバーサイドで管理。
+**Overview**: Introduce a lightweight proxy server using Express.js and manage API key on the server side.
 
-**利点**:
-- ✅ APIキーが完全にサーバーサイドで保護される
-- ✅ ローカル開発とプロダクション両方で同じコードベースが動作
-- ✅ 既存の開発環境（Python/PHPサーバー）との共存が可能
-- ✅ シンプルな構成で理解しやすい
-- ✅ 将来的な機能拡張（キャッシング、レート制限等）が容易
+**Advantages**:
+- ✅ API key is completely protected on the server side
+- ✅ Same codebase works in both local development and production
+- ✅ Can coexist with existing development environment (Python/PHP server)
+- ✅ Simple configuration, easy to understand
+- ✅ Easy to extend with future features (caching, rate limiting, etc.)
 
-**欠点**:
-- ❌ サーバーの起動と管理が必要
-- ❌ ホスティング環境にNode.js環境が必要
+**Disadvantages**:
+- ❌ Requires server startup and management
+- ❌ Hosting environment needs Node.js
 
-**実装の詳細**:
+**Implementation Details**:
 ```
-フロントエンド (script.js)
+Frontend (script.js)
     ↓ HTTP Request
-Express.js プロキシ (/api/tmdb/*)
+Express.js Proxy (/api/tmdb/*)
     ↓ HTTP Request (with API Key)
 TMDB API
 ```
 
-#### 2. サーバーレス関数（検討したが不採用）
+#### 2. Serverless Functions (Considered but Not Adopted)
 
-**概要**: Netlify Functions や Vercel Functions を使用。
+**Overview**: Use Netlify Functions or Vercel Functions.
 
-**利点**:
-- ✅ サーバー管理不要
-- ✅ 自動スケーリング
-- ✅ CDN統合
+**Advantages**:
+- ✅ No server management required
+- ✅ Auto-scaling
+- ✅ CDN integration
 
-**欠点**:
-- ❌ 特定のホスティングプラットフォームに依存
-- ❌ ローカル開発時の追加セットアップが必要
-- ❌ 現在の静的ホスティング要件と矛盾
+**Disadvantages**:
+- ❌ Dependency on specific hosting platform
+- ❌ Additional setup required for local development
+- ❌ Conflicts with current static hosting requirements
 
-**不採用理由**: プラットフォーム依存を避け、どの環境でも動作する汎用性を優先。
+**Reason Not Adopted**: Prioritized universality to work in any environment, avoiding platform dependency.
 
-#### 3. Cloudflare Workers（検討したが不採用）
+#### 3. Cloudflare Workers (Considered but Not Adopted)
 
-**概要**: エッジで動作する軽量プロキシ。
+**Overview**: Lightweight proxy running at the edge.
 
-**利点**:
-- ✅ 低レイテンシー
-- ✅ グローバル分散
+**Advantages**:
+- ✅ Low latency
+- ✅ Global distribution
 
-**欠点**:
-- ❌ Cloudflare環境に依存
-- ❌ Workers特有の制約（実行時間、メモリ等）
-- ❌ 学習コストが高い
+**Disadvantages**:
+- ❌ Dependency on Cloudflare environment
+- ❌ Workers-specific constraints (execution time, memory, etc.)
+- ❌ Higher learning curve
 
-**不採用理由**: シンプルさと汎用性を優先。
+**Reason Not Adopted**: Prioritized simplicity and universality.
 
-## 選択したアーキテクチャの詳細
+## Detailed Architecture of Selected Approach
 
-### ディレクトリ構造
+### Directory Structure
 
 ```
 trailer_zapper/
-├── client/              # フロントエンドファイル（既存）
+├── client/              # Frontend files (existing)
 │   ├── index.html
 │   ├── script.js
 │   └── style.css
-├── server/              # 新規: バックエンドプロキシ
-│   ├── index.js         # Expressサーバー
-│   ├── package.json     # 依存関係定義
-│   └── .env.example     # 環境変数のテンプレート
-├── .env                 # APIキー（.gitignoreに追加）
-└── package.json         # ルートレベルのスクリプト定義
+├── server/              # New: Backend proxy
+│   ├── index.js         # Express server
+│   ├── package.json     # Dependency definitions
+│   └── .env.example     # Environment variable template
+├── .env                 # API key (.gitignore added)
+└── package.json         # Root-level script definitions
 ```
 
-### APIエンドポイント設計
+### API Endpoint Design
 
-プロキシサーバーは以下のエンドポイントを提供：
+Proxy server provides the following endpoints:
 
 ```
 GET /api/tmdb/*
 ```
 
-- パス `*` 部分がTMDB APIのエンドポイントにマッピング
-- クエリパラメータをそのまま転送
-- サーバー側でAPIキーを自動付与
+- The `*` path portion maps to TMDB API endpoint
+- Query parameters are forwarded as-is
+- API key is automatically added on server side
 
-**例**:
+**Example**:
 ```
-フロントエンド: GET /api/tmdb/discover/movie?page=1
+Frontend: GET /api/tmdb/discover/movie?page=1
      ↓
-プロキシ: GET https://api.themoviedb.org/3/discover/movie?api_key=xxx&page=1
+Proxy: GET https://api.themoviedb.org/3/discover/movie?api_key=xxx&page=1
 ```
 
-### 環境変数管理
+### Environment Variable Management
 
-- `.env` ファイルでAPIキーを管理
-- `dotenv` パッケージで読み込み
-- `.gitignore` に `.env` を追加
-- `.env.example` でテンプレートを提供
+- Manage API key in `.env` file
+- Load with `dotenv` package
+- Add `.env` to `.gitignore`
+- Provide template with `.env.example`
 
-### CORS設定
+### CORS Configuration
 
-開発環境での動作を保証するため、適切なCORS設定を実装：
-- ローカル開発: `localhost:8000` を許可
-- プロダクション: 実際のドメインを環境変数で設定
+Implement appropriate CORS settings to ensure operation in development environment:
+- Local development: Allow `localhost:8000`
+- Production: Set actual domain via environment variable
 
-### エラーハンドリング
+### Error Handling
 
-1. **TMDB APIエラー**: ステータスコードとエラーメッセージをそのまま返す
-2. **サーバーエラー**: 500エラーと汎用メッセージを返す（詳細はログのみ）
-3. **タイムアウト**: 10秒でタイムアウト
+1. **TMDB API Errors**: Return status code and error message as-is
+2. **Server Errors**: Return 500 error with generic message (details in logs only)
+3. **Timeout**: 10-second timeout
 
-## セキュリティ考慮事項
+## Security Considerations
 
-1. **APIキーの保護**:
-   - サーバーサイドの環境変数でのみ管理
-   - クライアントには一切露出しない
+1. **API Key Protection**:
+   - Manage only in server-side environment variables
+   - Never expose to client
 
-2. **レート制限**:
-   - 初期実装では導入しない
-   - 将来的にexpress-rate-limitで実装可能
+2. **Rate Limiting**:
+   - Not introduced in initial implementation
+   - Can be implemented with express-rate-limit in the future
 
-3. **入力検証**:
-   - クエリパラメータの基本的なバリデーション
-   - 悪意のあるリクエストの防止
+3. **Input Validation**:
+   - Basic validation of query parameters
+   - Prevent malicious requests
 
-4. **.env のGit管理**:
-   - `.gitignore` に `.env` を追加
-   - `.env.example` で必要な変数を文書化
+4. **.env Git Management**:
+   - Add `.env` to `.gitignore`
+   - Document required variables in `.env.example`
 
-## パフォーマンス考慮事項
+## Performance Considerations
 
-1. **レスポンスタイム**:
-   - プロキシのオーバーヘッドは最小限（< 10ms）
-   - TMDB APIのレスポンスタイムが支配的
+1. **Response Time**:
+   - Proxy overhead is minimal (< 10ms)
+   - TMDB API response time is dominant
 
-2. **キャッシング**:
-   - 初期実装では導入しない
-   - 将来的にRedisやメモリキャッシュで実装可能
+2. **Caching**:
+   - Not introduced in initial implementation
+   - Can be implemented with Redis or in-memory cache in the future
 
-## 移行戦略
+## Migration Strategy
 
-1. **段階的な移行**:
-   - Phase 1: プロキシサーバーの実装とテスト
-   - Phase 2: フロントエンドのリファクタリング
-   - Phase 3: 古いAPIキー呼び出しの削除
+1. **Gradual Migration**:
+   - Phase 1: Proxy server implementation and testing
+   - Phase 2: Frontend refactoring
+   - Phase 3: Remove old API key calls
 
-2. **後方互換性**:
-   - 開発中は両方のアプローチを並行して動作可能にする
-   - 完全移行後に古いコードを削除
+2. **Backward Compatibility**:
+   - Both approaches can operate in parallel during development
+   - Remove old code after complete migration
 
-## 代替案との比較
+## Comparison with Alternatives
 
-| 項目 | バックエンドプロキシ | サーバーレス | Cloudflare Workers |
-|------|---------------------|-------------|-------------------|
-| セキュリティ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
-| シンプルさ | ⭐⭐⭐ | ⭐⭐ | ⭐ |
-| 汎用性 | ⭐⭐⭐ | ⭐ | ⭐ |
-| 運用コスト | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
-| 拡張性 | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
+| Aspect | Backend Proxy | Serverless | Cloudflare Workers |
+|--------|---------------|------------|-------------------|
+| Security | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
+| Simplicity | ⭐⭐⭐ | ⭐⭐ | ⭐ |
+| Universality | ⭐⭐⭐ | ⭐ | ⭐ |
+| Operational Cost | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
+| Extensibility | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
 
-**結論**: プロジェクトの現状（シンプルな静的アプリ）とチームのスキルセット（JavaScript）を考慮し、シンプルなバックエンドプロキシが最適。
+**Conclusion**: Considering the project's current state (simple static app) and team skill set (JavaScript), a simple backend proxy is optimal.
 
-## 今後の拡張可能性
+## Future Extensibility
 
-採用したアーキテクチャは、将来的な以下の機能拡張を容易にします：
+The adopted architecture facilitates the following future feature extensions:
 
-1. **キャッシング**: Redis等でTMDB APIレスポンスをキャッシュ
-2. **レート制限**: ユーザーごとのリクエスト制限
-3. **分析**: API使用状況のトラッキング
-4. **認証**: ユーザー認証機能の追加
-5. **追加API統合**: YouTube API等の他のAPIキーも同様に保護可能
+1. **Caching**: Cache TMDB API responses with Redis, etc.
+2. **Rate Limiting**: Per-user request limits
+3. **Analytics**: Track API usage
+4. **Authentication**: Add user authentication features
+5. **Additional API Integration**: Protect other API keys (YouTube API, etc.) similarly

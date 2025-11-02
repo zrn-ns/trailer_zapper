@@ -2,145 +2,147 @@
 
 ## Summary
 
-TMDB APIキーをクライアントサイドから完全に分離し、Express.jsプロキシサーバー経由で安全にアクセスできるようにする。これにより、APIキーの露出リスクを解消し、セキュリティを大幅に向上させる。
+Completely isolate the TMDB API key from the client-side and enable secure access through an Express.js proxy server. This eliminates the risk of API key exposure and significantly improves security.
 
-## Motivation
+## Why
 
-### 現在の問題
+### Current Problem
 
-現在、TMDB APIキーが `script.js:9` にハードコードされており、以下の深刻なセキュリティリスクが存在します：
+Currently, the TMDB API key is hardcoded in `script.js:9`, creating the following serious security risks:
 
-1. **APIキーの露出**: ブラウザの開発者ツールで誰でも簡単にAPIキーを確認できる
-2. **悪用リスク**: 露出したAPIキーを第三者が取得し、レート制限を消費したり、不正利用される可能性がある
-3. **キーローテーション困難**: APIキーを変更する際、JavaScriptファイルを再配布する必要があり、運用が困難
+1. **API Key Exposure**: Anyone can easily view the API key through browser developer tools
+2. **Abuse Risk**: Third parties can obtain the exposed API key and consume rate limits or misuse it
+3. **Key Rotation Difficulty**: Changing the API key requires redistributing the JavaScript file, making operations difficult
 
-### なぜ今対処すべきか
+### Why Address This Now
 
-- セキュリティベストプラクティスに準拠
-- TMDB API利用規約の遵守（APIキーは適切に保護すべき）
-- 将来的なプロダクション展開に向けた基盤整備
-- 他の外部API（YouTube API等）を追加する際の参考実装
+- Comply with security best practices
+- Adhere to TMDB API terms of service (API keys should be properly protected)
+- Build foundation for future production deployment
+- Reference implementation for adding other external APIs (YouTube API, etc.)
 
-## Proposed Solution
+## What Changes
 
-Express.jsベースの軽量プロキシサーバーを導入し、以下のアーキテクチャを実装：
+### Proposed Solution
+
+Introduce a lightweight Express.js-based proxy server with the following architecture:
 
 ```
-フロントエンド (client/)
+Frontend (client/)
     ↓ HTTP Request (/api/tmdb/*)
-Express.js プロキシ (server/)
+Express.js Proxy (server/)
     ↓ HTTP Request (with API Key from .env)
 TMDB API
 ```
 
-### 主要な変更点
+### Key Changes
 
-1. **プロキシサーバーの追加**: Express.js + dotenv + CORS
-2. **環境変数管理**: `.env` ファイルでAPIキーを安全に管理
-3. **フロントエンドのリファクタリング**: プロキシ経由でAPIにアクセス
-4. **セキュリティ強化**: `.gitignore` で `.env` を除外
+1. **Add Proxy Server**: Express.js + dotenv + CORS
+2. **Environment Variable Management**: Securely manage API key in `.env` file
+3. **Frontend Refactoring**: Access API through proxy
+4. **Security Hardening**: Exclude `.env` with `.gitignore`
 
-### なぜこのアプローチか
+### Why This Approach
 
-- **シンプル**: 既存のVanilla JavaScriptプロジェクトに最小限の変更で統合可能
-- **汎用性**: どのホスティング環境でも動作（サーバーレス関数に依存しない）
-- **拡張性**: 将来的なキャッシング、レート制限、認証機能の追加が容易
-- **学習コスト低**: Express.jsは広く使われており、チームメンバーが容易に理解できる
+- **Simple**: Minimal changes integrate with existing Vanilla JavaScript project
+- **Universal**: Works in any hosting environment (no dependency on serverless functions)
+- **Extensible**: Easy to add future caching, rate limiting, and authentication features
+- **Low Learning Curve**: Express.js is widely used and team members can easily understand
 
-詳細な設計判断は `design.md` を参照。
+See `design.md` for detailed design decisions.
 
 ## Impact
 
-### セキュリティ向上
+### Security Improvements
 
-- ✅ APIキーがクライアントサイドに一切露出しなくなる
-- ✅ `.env` ファイルでキーを一元管理
-- ✅ Git リポジトリにAPIキーがコミットされるリスクを排除
+- ✅ API key will not be exposed on the client-side at all
+- ✅ Centralized key management in `.env` file
+- ✅ Eliminate risk of committing API keys to Git repository
 
-### 開発体験
+### Developer Experience
 
-- ⚠️ サーバーの起動が必要（追加の運用負荷）
-- ✅ `npm run dev` で一括起動可能（セットアップは簡単）
-- ✅ `.env.example` でテンプレート提供（新規開発者のオンボーディング改善）
+- ⚠️ Requires server startup (additional operational overhead)
+- ✅ Can launch everything with `npm run dev` (setup is simple)
+- ✅ Template provided with `.env.example` (improved onboarding for new developers)
 
-### パフォーマンス
+### Performance
 
-- ⚠️ プロキシのオーバーヘッド < 10ms（TMDB APIのレスポンスタイムが支配的）
-- ➡️ エンドユーザー体験への影響は無視できるレベル
+- ⚠️ Proxy overhead < 10ms (TMDB API response time is dominant)
+- ➡️ Impact on end-user experience is negligible
 
-### デプロイメント
+### Deployment
 
-- ⚠️ Node.js環境が必要（多くのホスティングサービスで対応）
-- ✅ Heroku、Render、Railway等で簡単にデプロイ可能
-- ✅ ローカル開発環境と本番環境で同じコードベースが動作
+- ⚠️ Requires Node.js environment (supported by many hosting services)
+- ✅ Easy deployment on Heroku, Render, Railway, etc.
+- ✅ Same codebase works in local development and production environments
 
 ## Alternatives Considered
 
-1. **サーバーレス関数（Netlify/Vercel Functions）**
-   - 利点: サーバー管理不要、自動スケーリング
-   - 欠点: プラットフォーム依存、ローカル開発の複雑性
-   - 不採用理由: 汎用性とシンプルさを優先
+1. **Serverless Functions (Netlify/Vercel Functions)**
+   - Pros: No server management, auto-scaling
+   - Cons: Platform dependency, local development complexity
+   - Reason not adopted: Prioritized universality and simplicity
 
 2. **Cloudflare Workers**
-   - 利点: エッジでの低レイテンシー
-   - 欠点: Cloudflare依存、学習コスト
-   - 不採用理由: オーバースペック、シンプルさを優先
+   - Pros: Low latency at the edge
+   - Cons: Cloudflare dependency, learning curve
+   - Reason not adopted: Overkill, prioritized simplicity
 
-3. **環境変数のビルド時埋め込み（Vite/Parcel等）**
-   - 利点: ビルドツールで環境変数を管理
-   - 欠点: クライアントサイドに依然として露出、完全な解決策ではない
-   - 不採用理由: セキュリティリスクが残る
+3. **Build-time Environment Variable Embedding (Vite/Parcel, etc.)**
+   - Pros: Manage environment variables with build tools
+   - Cons: Still exposed on client-side, not a complete solution
+   - Reason not adopted: Security risks remain
 
-詳細な比較は `design.md` を参照。
+See `design.md` for detailed comparison.
 
 ## Success Criteria
 
-### 機能要件
+### Functional Requirements
 
-- [ ] プロキシサーバー経由で全てのTMDB APIリクエストが正常に動作
-- [ ] 既存の機能（映画検索、予告編再生、フィルタリング等）が全て動作
-- [ ] ローカル開発環境で `npm run dev` 一つで起動可能
+- [ ] All TMDB API requests work properly through proxy server
+- [ ] All existing features (movie search, trailer playback, filtering, etc.) work
+- [ ] Can launch with a single `npm run dev` in local development environment
 
-### セキュリティ要件
+### Security Requirements
 
-- [ ] ブラウザの開発者ツールでAPIキーが確認できない
-- [ ] ソースコード内にAPIキーが一切存在しない
-- [ ] `.env` ファイルがGit追跡対象外
+- [ ] API key cannot be viewed in browser developer tools
+- [ ] No API key exists anywhere in source code
+- [ ] `.env` file is not tracked by Git
 
-### ドキュメント要件
+### Documentation Requirements
 
-- [ ] README.mdに明確なセットアップ手順が記載されている
-- [ ] `.env.example` で必要な環境変数が文書化されている
-- [ ] 新規開発者が30分以内に環境構築できる
+- [ ] Clear setup instructions in README.md
+- [ ] Required environment variables documented in `.env.example`
+- [ ] New developers can set up environment within 30 minutes
 
 ## Timeline
 
-約4.5時間の実装時間を見積もり（詳細は `tasks.md` を参照）：
+Estimated implementation time of approximately 4.5 hours (see `tasks.md` for details):
 
-1. **Week 1**: Phase 1-2（プロキシサーバーのセットアップと実装） - 1.5時間
-2. **Week 1**: Phase 3（フロントエンドのリファクタリング） - 1時間
-3. **Week 2**: Phase 4-5（開発体験の改善とテスト） - 1.25時間
-4. **Week 2**: Phase 6（ドキュメントと最終確認） - 0.5時間
+1. **Week 1**: Phase 1-2 (Proxy server setup and implementation) - 1.5 hours
+2. **Week 1**: Phase 3 (Frontend refactoring) - 1 hour
+3. **Week 2**: Phase 4-5 (Developer experience improvements and testing) - 1.25 hours
+4. **Week 2**: Phase 6 (Documentation and final validation) - 0.5 hours
 
 ## Open Questions
 
-1. **プロダクション環境のホスティング**: どのプラットフォームを使用する予定か？
-   - 推奨: Render、Railway、Heroku（無料〜低コストで開始可能）
+1. **Production hosting**: Which platform will be used?
+   - Recommended: Render, Railway, Heroku (can start free to low cost)
 
-2. **環境変数の管理**: 本番環境でどのように `.env` を設定するか？
-   - 推奨: ホスティングプラットフォームの環境変数設定機能を使用
+2. **Environment variable management**: How will `.env` be configured in production?
+   - Recommended: Use hosting platform's environment variable configuration feature
 
-3. **モニタリング**: プロキシサーバーのログやメトリクスをどう管理するか？
-   - 初期実装: console.log（将来的にWinston等のロガー導入検討）
+3. **Monitoring**: How will proxy server logs and metrics be managed?
+   - Initial implementation: console.log (consider introducing logger like Winston in the future)
 
 ## Related Changes
 
-なし（初期のセキュリティ改善）
+None (initial security improvement)
 
 ## Reviewers
 
-- @zrn_ns（プロジェクトオーナー）
+- @zrn_ns (Project Owner)
 
 ## Status
 
-**Proposed** - レビュー待ち
+**Proposed** - Awaiting review

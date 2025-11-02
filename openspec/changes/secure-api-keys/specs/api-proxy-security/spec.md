@@ -2,154 +2,140 @@
 
 ## Overview
 
-TMDB APIキーをクライアントサイドから完全に分離し、Express.jsプロキシサーバー経由で安全にアクセスできるようにする。
+This spec describes the implementation of a secure API key management system using an Express.js proxy server. The TMDB API key will be completely isolated from the client-side code and managed securely on the server side.
 
 ## ADDED Requirements
 
-### Requirement: プロキシサーバーの実装
+### Requirement: Proxy Server Implementation
 
 The system SHALL implement an Express.js-based proxy server that relays requests to the TMDB API.
 
-#### Scenario: TMDB APIへの基本的なプロキシリクエスト
+#### Scenario: Basic proxy request to TMDB API
 
-**Given**: プロキシサーバーが起動している
-**When**: クライアントが `/api/tmdb/discover/movie?page=1` にGETリクエストを送信
-**Then**: サーバーは TMDB API `https://api.themoviedb.org/3/discover/movie?api_key=xxx&page=1` にリクエストを転送し、レスポンスをそのまま返す
+**Given**: The proxy server is running
+**When**: The client sends a GET request to `/api/tmdb/discover/movie?page=1`
+**Then**: The server forwards the request to TMDB API `https://api.themoviedb.org/3/discover/movie?api_key=xxx&page=1` and returns the response
 
-#### Scenario: エンドポイントパスの動的マッピング
+#### Scenario: Dynamic endpoint path mapping
 
-**Given**: プロキシサーバーが起動している
-**When**: クライアントが `/api/tmdb/genre/movie/list` にGETリクエストを送信
-**Then**: サーバーは TMDB API `/genre/movie/list` エンドポイントにマッピングしてリクエストを転送
+**Given**: The proxy server is running
+**When**: The client sends a GET request to `/api/tmdb/genre/movie/list`
+**Then**: The server maps and forwards the request to the TMDB API `/genre/movie/list` endpoint
 
-#### Scenario: クエリパラメータの転送
+#### Scenario: Query parameter forwarding
 
-**Given**: プロキシサーバーが起動している
-**When**: クライアントが `/api/tmdb/discover/movie?page=2&with_genres=28` にリクエスト
-**Then**: サーバーはクエリパラメータ `page=2&with_genres=28` を保持し、APIキーを追加してTMDBに転送
+**Given**: The proxy server is running
+**When**: The client sends a request to `/api/tmdb/discover/movie?page=2&with_genres=28`
+**Then**: The server preserves the query parameters `page=2&with_genres=28`, adds the API key, and forwards to TMDB
 
-### Requirement: 環境変数によるAPIキー管理
+### Requirement: Environment Variable API Key Management
 
 The system SHALL manage the API key in a `.env` file and load it at server startup.
 
-#### Scenario: 環境変数からのAPIキー読み込み
+#### Scenario: Loading API key from environment variable
 
-**Given**: `.env` ファイルに `TMDB_API_KEY=abc123` が定義されている
-**When**: サーバーが起動
-**Then**: サーバーは環境変数 `TMDB_API_KEY` を読み込み、TMDB APIリクエストに使用
+**Given**: The `.env` file contains `TMDB_API_KEY=abc123`
+**When**: The server starts
+**Then**: The server loads the environment variable `TMDB_API_KEY` and uses it for TMDB API requests
 
-#### Scenario: APIキー未設定時のエラー
+#### Scenario: Error when API key is not configured
 
-**Given**: `.env` ファイルに `TMDB_API_KEY` が定義されていない
-**When**: サーバーが起動
-**Then**: サーバーは起動に失敗し、エラーメッセージ「TMDB_API_KEY is not configured」を表示
+**Given**: The `.env` file does not contain `TMDB_API_KEY`
+**When**: The server starts
+**Then**: The server fails to start and displays error message "TMDB_API_KEY is not configured"
 
-#### Scenario: .env.example によるテンプレート提供
+#### Scenario: Template provision via .env.example
 
-**Given**: プロジェクトに `.env.example` ファイルが存在
-**When**: 開発者が環境を初期セットアップ
-**Then**: `.env.example` をコピーして `.env` を作成し、実際のAPIキーを設定できる
+**Given**: The project contains a `.env.example` file
+**When**: A developer performs initial environment setup
+**Then**: The developer can copy `.env.example` to create `.env` and set the actual API key
 
-### Requirement: CORS設定
+### Requirement: CORS Configuration
 
 The proxy server SHALL allow cross-origin requests from both local development and production environments.
 
-#### Scenario: ローカル開発環境からのリクエスト
+#### Scenario: Request from local development environment
 
-**Given**: フロントエンドが `http://localhost:8000` で動作
-**When**: `http://localhost:8000` からプロキシサーバーの `/api/tmdb/*` にリクエスト
-**Then**: CORS ヘッダーにより、リクエストが許可される
+**Given**: The frontend is running at `http://localhost:8000`
+**When**: A request is made from `http://localhost:8000` to the proxy server's `/api/tmdb/*`
+**Then**: The request is allowed via CORS headers
 
-#### Scenario: プロダクション環境からのリクエスト
+#### Scenario: Request from production environment
 
-**Given**: フロントエンドが `https://example.com` で動作し、`ALLOWED_ORIGINS` 環境変数に設定されている
-**When**: `https://example.com` からプロキシサーバーにリクエスト
-**Then**: CORS ヘッダーにより、リクエストが許可される
+**Given**: The frontend is running at `https://example.com` and is configured in the `ALLOWED_ORIGINS` environment variable
+**When**: A request is made from `https://example.com` to the proxy server
+**Then**: The request is allowed via CORS headers
 
-### Requirement: エラーハンドリング
+### Requirement: Error Handling
 
 The proxy server SHALL properly handle TMDB API errors and server errors, and return them to the client.
 
-#### Scenario: TMDB APIエラーの転送
+#### Scenario: Forwarding TMDB API errors
 
-**Given**: プロキシサーバーが起動している
-**When**: TMDB APIが 401 Unauthorized エラーを返す
-**Then**: プロキシサーバーはステータスコード 401 とエラーメッセージをクライアントに転送
+**Given**: The proxy server is running
+**When**: TMDB API returns a 401 Unauthorized error
+**Then**: The proxy server forwards status code 401 and error message to the client
 
-#### Scenario: サーバー内部エラー
+#### Scenario: Server internal error
 
-**Given**: プロキシサーバーが起動している
-**When**: TMDB APIへのリクエスト処理中に予期しないエラーが発生
-**Then**: プロキシサーバーは 500 Internal Server Error をクライアントに返し、エラー詳細はサーバーログに記録
+**Given**: The proxy server is running
+**When**: An unexpected error occurs during TMDB API request processing
+**Then**: The proxy server returns 500 Internal Server Error to the client and logs error details to server logs
 
-#### Scenario: タイムアウト処理
+#### Scenario: Timeout handling
 
-**Given**: プロキシサーバーが起動している
-**When**: TMDB APIへのリクエストが10秒以内に完了しない
-**Then**: プロキシサーバーはリクエストをタイムアウトさせ、504 Gateway Timeout をクライアントに返す
+**Given**: The proxy server is running
+**When**: A request to TMDB API does not complete within 10 seconds
+**Then**: The proxy server times out the request and returns 504 Gateway Timeout to the client
 
-### Requirement: セキュリティ強化
+### Requirement: Security Hardening
 
 The project SHALL prevent API keys from being accidentally committed to the repository through .gitignore configuration.
 
-#### Scenario: .envファイルのGit除外
+#### Scenario: Git exclusion of .env file
 
-**Given**: `.gitignore` ファイルが存在
-**When**: `.env` ファイルが作成される
-**Then**: Git は `.env` ファイルを追跡対象外とし、`git status` に表示されない
+**Given**: A `.gitignore` file exists
+**When**: A `.env` file is created
+**Then**: Git excludes the `.env` file from tracking and it does not appear in `git status`
 
-#### Scenario: .env.exampleはコミット可能
+#### Scenario: .env.example is committable
 
-**Given**: `.env.example` ファイルが存在
-**When**: `git add` を実行
-**Then**: `.env.example` は追跡対象となり、リポジトリにコミット可能
+**Given**: A `.env.example` file exists
+**When**: `git add` is executed
+**Then**: `.env.example` is tracked and can be committed to the repository
 
-## MODIFIED Requirements
+### Requirement: Frontend Proxy Integration
 
-### Requirement: フロントエンドのAPIリクエスト先変更
+The frontend SHALL send all TMDB API requests through the proxy server.
 
-The existing `fetchFromTMDB` function SHALL be modified to send requests to the proxy server instead of directly to the TMDB API.
+#### Scenario: Discover API call through proxy
 
-#### Scenario: プロキシ経由でのdiscover API呼び出し
+**Given**: The frontend can connect to the proxy server
+**When**: `fetchFromTMDB('/discover/movie', {page: 1})` is called
+**Then**: The request is sent to `http://localhost:3000/api/tmdb/discover/movie?page=1` (API key is not included)
 
-**Given**: フロントエンドがプロキシサーバーに接続可能
-**When**: `fetchFromTMDB('/discover/movie', {page: 1})` を呼び出し
-**Then**: リクエストは `http://localhost:3000/api/tmdb/discover/movie?page=1` に送信される（APIキーは含まれない）
+#### Scenario: Genre API call through proxy
 
-#### Scenario: プロキシ経由でのgenre API呼び出し
+**Given**: The frontend can connect to the proxy server
+**When**: `fetchFromTMDB('/genre/movie/list')` is called
+**Then**: The request is sent to `http://localhost:3000/api/tmdb/genre/movie/list`
 
-**Given**: フロントエンドがプロキシサーバーに接続可能
-**When**: `fetchFromTMDB('/genre/movie/list')` を呼び出し
-**Then**: リクエストは `http://localhost:3000/api/tmdb/genre/movie/list` に送信される
+#### Scenario: Videos API call through proxy
 
-#### Scenario: プロキシ経由でのvideos API呼び出し
+**Given**: The frontend can connect to the proxy server
+**When**: `fetchFromTMDB('/movie/123/videos')` is called
+**Then**: The request is sent to `http://localhost:3000/api/tmdb/movie/123/videos`
 
-**Given**: フロントエンドがプロキシサーバーに接続可能
-**When**: `fetchFromTMDB('/movie/123/videos')` を呼び出し
-**Then**: リクエストは `http://localhost:3000/api/tmdb/movie/123/videos` に送信される
+#### Scenario: No API key exists on client side
 
-## REMOVED Requirements
-
-### Requirement: クライアントサイドでのAPIキー管理
-
-The hardcoded API key in script.js SHALL be removed.
-
-#### Scenario: APIキー定数の削除
-
-**Given**: `script.js:9` に `const TMDB_API_KEY = 'd6f89a671e8fecb1f7cd6a6d32c66ff1';` が存在
-**When**: セキュリティ改善を適用
-**Then**: `TMDB_API_KEY` 定数は削除され、クライアントサイドコードには一切存在しない
-
-#### Scenario: fetchFromTMDB関数からのAPIキー削除
-
-**Given**: `fetchFromTMDB` 関数が `api_key: TMDB_API_KEY` をクエリパラメータに追加している
-**When**: プロキシ対応に変更
-**Then**: `api_key` パラメータの追加処理は削除され、プロキシサーバーが自動追加する
+**Given**: Security improvements have been applied
+**When**: Client-side code (script.js) is inspected
+**Then**: No API key constants or api_key parameter addition logic exists
 
 ## Dependencies
 
-なし（新規機能のため）
+None (new feature)
 
 ## Related Capabilities
 
-なし（初期の仕様のため）
+None (initial specification)

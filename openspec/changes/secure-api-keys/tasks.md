@@ -1,176 +1,176 @@
 # Tasks: API Key Security Implementation
 
-## Phase 1: プロキシサーバーのセットアップ
+## Phase 1: Proxy Server Setup
 
-### 1. プロジェクト構造の整理
+### 1. Project Structure Organization
 
-- [x] `client/` ディレクトリを作成し、既存のフロントエンドファイルを移動
-  - `index.html`, `script.js`, `style.css`, `tmdb-attribution.svg` を移動
-- [x] `server/` ディレクトリを作成
-- [x] ルートレベルに `.gitignore` を更新（`.env` を追加）
+- [x] Create `client/` directory and move existing frontend files
+  - Move `index.html`, `script.js`, `style.css`, `tmdb-attribution.svg`
+- [x] Create `server/` directory
+- [x] Update `.gitignore` at root level (add `.env`)
 
-**検証**: `ls` コマンドで新しいディレクトリ構造を確認
+**Validation**: Verify new directory structure with `ls` command
 
-### 2. サーバー側の依存関係セットアップ
+### 2. Server Dependency Setup
 
-- [x] `server/package.json` を作成
-  - `express`, `dotenv`, `cors`, `axios` を依存関係に追加
-- [x] `server/` ディレクトリで `npm install` を実行
+- [x] Create `server/package.json`
+  - Add `express`, `dotenv`, `cors`, `axios` as dependencies
+- [x] Run `npm install` in `server/` directory
 
-**検証**: `server/node_modules/` が作成され、依存関係がインストールされていることを確認
+**Validation**: Confirm `server/node_modules/` is created and dependencies are installed
 
-### 3. 環境変数ファイルの作成
+### 3. Environment Variable File Creation
 
-- [x] `.env.example` をルートディレクトリに作成
-  - `TMDB_API_KEY=your_api_key_here` のテンプレートを記述
-  - `PORT=3000` を追加
-  - `ALLOWED_ORIGINS=http://localhost:8000` を追加
-- [x] `.env` ファイルを作成し、実際のAPIキーを設定
-- [x] `.gitignore` に `.env` を追加（既に追加されていれば確認）
+- [x] Create `.env.example` at root directory
+  - Write template with `TMDB_API_KEY=your_api_key_here`
+  - Add `PORT=3000`
+  - Add `ALLOWED_ORIGINS=http://localhost:8000`
+- [x] Create `.env` file and set actual API key
+- [x] Add `.env` to `.gitignore` (verify if already added)
 
-**検証**: `cat .env.example` でテンプレートの内容を確認、`git status` で `.env` が無視されていることを確認
+**Validation**: Verify template content with `cat .env.example`, confirm `.env` is ignored with `git status`
 
-## Phase 2: プロキシサーバーの実装
+## Phase 2: Proxy Server Implementation
 
-### 4. 基本的なExpressサーバーの作成
+### 4. Basic Express Server Creation
 
-- [x] `server/index.js` を作成
-- [x] Express アプリケーションの基本構造を実装
-  - `dotenv` で環境変数を読み込み
-  - `TMDB_API_KEY` の存在確認（未設定の場合エラー）
-  - CORS ミドルウェアの設定
-  - ポート 3000 でリッスン
+- [x] Create `server/index.js`
+- [x] Implement basic Express application structure
+  - Load environment variables with `dotenv`
+  - Verify `TMDB_API_KEY` exists (error if not configured)
+  - Configure CORS middleware
+  - Listen on port 3000
 
-**検証**: `node server/index.js` でサーバーが起動し、エラーなく動作することを確認
+**Validation**: Confirm server starts without errors with `node server/index.js`
 
-### 5. TMDB APIプロキシエンドポイントの実装
+### 5. TMDB API Proxy Endpoint Implementation
 
-- [x] `/api/tmdb/*` エンドポイントを実装
-  - パス パラメータからTMDB APIエンドポイントを抽出
-  - クエリパラメータを保持
-  - `axios` で TMDB API にリクエスト（APIキーを自動付与）
-  - レスポンスをクライアントに返す
-- [x] エラーハンドリングの実装
-  - TMDB APIエラーの転送
-  - サーバーエラーの適切な処理
-  - タイムアウト設定（10秒）
+- [x] Implement `/api/tmdb/*` endpoint
+  - Extract TMDB API endpoint from path parameters
+  - Preserve query parameters
+  - Make request to TMDB API with `axios` (automatically add API key)
+  - Return response to client
+- [x] Implement error handling
+  - Forward TMDB API errors
+  - Proper handling of server errors
+  - Timeout setting (10 seconds)
 
-**検証**: `curl http://localhost:3000/api/tmdb/genre/movie/list` でTMDB APIからデータが返ってくることを確認
+**Validation**: Verify data is returned from TMDB API with `curl http://localhost:3000/api/tmdb/genre/movie/list`
 
-### 6. CORS設定の実装
+### 6. CORS Configuration Implementation
 
-- [x] `cors` ミドルウェアを設定
-  - `ALLOWED_ORIGINS` 環境変数から許可するオリジンを読み込み
-  - デフォルトで `http://localhost:8000` を許可
-- [x] プリフライトリクエストの対応
+- [x] Configure `cors` middleware
+  - Load allowed origins from `ALLOWED_ORIGINS` environment variable
+  - Allow `http://localhost:8000` by default
+- [x] Handle preflight requests
 
-**検証**: ブラウザコンソールでCORSエラーが発生しないことを確認
+**Validation**: Confirm no CORS errors in browser console
 
-## Phase 3: フロントエンドのリファクタリング
+## Phase 3: Frontend Refactoring
 
-### 7. フロントエンドの設定ファイル追加
+### 7. Frontend Configuration File Addition
 
-- [x] `client/config.js` を作成（または `script.js` 内に設定を追加）
-  - `API_PROXY_URL` を定義（デフォルト: `http://localhost:3000`）
-  - 環境に応じて変更可能にする
+- [x] Create `client/config.js` (or add configuration to `script.js`)
+  - Define `API_PROXY_URL` (default: `http://localhost:3000`)
+  - Make it changeable based on environment
 
-**検証**: `cat client/config.js` で設定が正しいことを確認
+**Validation**: Verify configuration is correct with `cat client/config.js`
 
-### 8. fetchFromTMDB関数のリファクタリング
+### 8. fetchFromTMDB Function Refactoring
 
-- [x] `script.js` の `TMDB_API_KEY` 定数を削除
-- [x] `API_BASE_URL` をプロキシサーバーのURL（`http://localhost:3000/api/tmdb`）に変更
-- [x] `fetchFromTMDB` 関数から `api_key` パラメータの追加処理を削除
-- [x] その他のAPIリクエストパラメータ（`language`, `region` 等）はそのまま保持
+- [x] Remove `TMDB_API_KEY` constant from `script.js`
+- [x] Change `API_BASE_URL` to proxy server URL (`http://localhost:3000/api/tmdb`)
+- [x] Remove `api_key` parameter addition logic from `fetchFromTMDB` function
+- [x] Keep other API request parameters (`language`, `region`, etc.)
 
-**検証**: ブラウザコンソールで `fetchFromTMDB` を呼び出し、プロキシ経由でデータが取得できることを確認
+**Validation**: Confirm data can be fetched through proxy by calling `fetchFromTMDB` in browser console
 
-### 9. 全てのTMDB API呼び出しの動作確認
+### 9. Verify All TMDB API Calls
 
-- [x] ジャンルリストの取得をテスト
-- [x] 映画検索（discover API）をテスト
-- [x] 予告編情報（videos API）をテスト
-- [x] 配信サービス情報（watch/providers API）をテスト
+- [x] Test genre list retrieval
+- [x] Test movie search (discover API)
+- [x] Test trailer information (videos API)
+- [x] Test streaming service information (watch/providers API)
 
-**検証**: アプリケーションを起動し、各機能が正常に動作することを確認
+**Validation**: Start application and confirm each feature works correctly
 
-## Phase 4: 開発体験の改善
+## Phase 4: Developer Experience Improvements
 
-### 10. npm scriptsの追加
+### 10. Add npm Scripts
 
-- [x] ルートレベルの `package.json` を作成（存在しない場合）
-- [x] 以下のスクリプトを追加:
-  - `start:server`: サーバーの起動
-  - `start:client`: クライアントの開発サーバー起動（Python/PHP）
-  - `dev`: 両方を並行起動（`concurrently` 使用）
+- [x] Create root-level `package.json` (if it doesn't exist)
+- [x] Add the following scripts:
+  - `start:server`: Start server
+  - `start:client`: Start client development server (Python/PHP)
+  - `dev`: Start both concurrently (use `concurrently`)
 
-**検証**: `npm run dev` で両方のサーバーが起動することを確認
+**Validation**: Confirm both servers start with `npm run dev`
 
-### 11. README.mdの更新
+### 11. Update README.md
 
-- [x] セットアップ手順を追加
-  - `.env` ファイルの作成方法
-  - 依存関係のインストール手順
-  - サーバーの起動方法
-- [x] 環境変数の説明を追加
-- [x] トラブルシューティングセクションを追加
+- [x] Add setup instructions
+  - How to create `.env` file
+  - Dependency installation procedure
+  - How to start servers
+- [x] Add environment variable descriptions
+- [x] Add troubleshooting section
 
-**検証**: README.md の手順に従って、新しい開発者が環境をセットアップできることを確認
+**Validation**: Confirm a new developer can set up the environment following README.md instructions
 
-## Phase 5: テストと検証
+## Phase 5: Testing and Validation
 
-### 12. 統合テストの実施
+### 12. Integration Testing
 
-- [x] プロキシサーバーが起動していない場合のエラーハンドリング確認
-- [x] 無効なAPIキーでのエラーメッセージ確認
-- [x] 複数の映画検索シナリオをテスト
-- [x] ネットワークエラー時の挙動確認
+- [x] Verify error handling when proxy server is not running
+- [x] Verify error messages with invalid API key
+- [x] Test multiple movie search scenarios
+- [x] Verify behavior during network errors
 
-**検証**: 各種エラーケースで適切なエラーメッセージが表示されることを確認
+**Validation**: Confirm appropriate error messages are displayed for various error cases
 
-### 13. セキュリティ検証
+### 13. Security Validation
 
-- [x] ブラウザの開発者ツールでネットワークタブを確認し、APIキーが露出していないことを確認
-- [x] ソースコードにAPIキーが含まれていないことを確認（`grep -r "d6f89a671e8fecb1f7cd6a6d32c66ff1"` で検索）
-- [x] `.env` が `.gitignore` に含まれ、Git追跡対象外であることを確認
+- [x] Verify API key is not exposed in browser developer tools network tab
+- [x] Confirm no API key exists in source code (`grep -r "d6f89a671e8fecb1f7cd6a6d32c66ff1"`)
+- [x] Verify `.env` is in `.gitignore` and not tracked by Git
 
-**検証**: `git status` で `.env` が表示されず、ブラウザでAPIキーが見えないことを確認
+**Validation**: Confirm `.env` doesn't appear in `git status` and API key is not visible in browser
 
-## Phase 6: ドキュメントと最終確認
+## Phase 6: Documentation and Final Validation
 
-### 14. プロジェクトドキュメントの更新
+### 14. Update Project Documentation
 
-- [x] `openspec/project.md` のアーキテクチャセクションを更新
-  - 新しいディレクトリ構造を反映
-  - プロキシサーバーの説明を追加
-- [x] `CLAUDE.md` の開発環境セットアップセクションを更新
+- [x] Update architecture section of `openspec/project.md`
+  - Reflect new directory structure
+  - Add proxy server description
+- [x] Update development environment setup section of `CLAUDE.md`
 
-**検証**: ドキュメントが最新の実装を正確に反映していることを確認
+**Validation**: Confirm documentation accurately reflects latest implementation
 
-### 15. 最終動作確認
+### 15. Final Operational Check
 
-- [x] クリーンな環境で `.env.example` をコピーして `.env` を作成
-- [x] `npm install` と `npm run dev` でアプリケーション全体を起動
-- [x] 全ての主要機能（映画検索、予告編再生、フィルタリング等）が正常に動作することを確認
+- [x] Copy `.env.example` to create `.env` in clean environment
+- [x] Launch entire application with `npm install` and `npm run dev`
+- [x] Verify all major features work correctly (movie search, trailer playback, filtering, etc.)
 
-**検証**: エンドツーエンドで全機能が動作し、APIキーが保護されていることを確認
+**Validation**: Confirm all features work end-to-end and API key is protected
 
-## Dependencies between tasks
+## Dependencies Between Tasks
 
-- タスク 1-3 は並行実行可能
-- タスク 4-6 は順次実行（4 → 5 → 6）
-- タスク 7-9 はタスク 6 完了後に実行可能
-- タスク 10-11 は他のタスクと並行実行可能
-- タスク 12-13 は Phase 3 完了後に実行
-- タスク 14-15 は最後に実行
+- Tasks 1-3 can be executed in parallel
+- Tasks 4-6 are sequential (4 → 5 → 6)
+- Tasks 7-9 can be executed after Task 6 completes
+- Tasks 10-11 can be executed in parallel with other tasks
+- Tasks 12-13 execute after Phase 3 completes
+- Tasks 14-15 execute last
 
-## Estimated effort
+## Estimated Effort
 
-- Phase 1: 30分
-- Phase 2: 1時間
-- Phase 3: 1時間
-- Phase 4: 30分
-- Phase 5: 45分
-- Phase 6: 30分
+- Phase 1: 30 minutes
+- Phase 2: 1 hour
+- Phase 3: 1 hour
+- Phase 4: 30 minutes
+- Phase 5: 45 minutes
+- Phase 6: 30 minutes
 
-**合計**: 約4.5時間
+**Total**: Approximately 4.5 hours

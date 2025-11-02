@@ -292,6 +292,11 @@ function togglePause() {
 function toggleUIVisibility() {
     if (!state.hasStarted) return;
     if (!uiToggleButton) return;
+
+    // 縦レイアウト（≤720px）では切り替え機能を無効化
+    const isPortraitMobile = window.innerWidth <= 720;
+    if (isPortraitMobile) return;
+
     if (isManuallyHidden) {
         isManuallyHidden = false;
         uiToggleButton.textContent = 'UI非表示';

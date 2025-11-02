@@ -866,10 +866,13 @@ async function initializeApp() {
         startButton.addEventListener('click', () => {
             startButton.disabled = true;
 
-            // ブザー音を再生（エラーが発生してもUIをブロックしない）
-            buzzerAudio.play().catch((error) => {
-                console.warn('ブザー音の再生に失敗しました:', error);
-            });
+            // 1秒後に暗転アニメーションとブザー音を同時に開始
+            setTimeout(() => {
+                // ブザー音を再生（エラーが発生してもUIをブロックしない）
+                buzzerAudio.play().catch((error) => {
+                    console.warn('ブザー音の再生に失敗しました:', error);
+                });
+            }, 1000);
 
             // 映画館のような暗転演出を開始
             startModal.classList.add('fade-out');

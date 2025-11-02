@@ -363,7 +363,22 @@ function handleYoutubeError(event) {
     const isTemporaryError = [2, 5].includes(errorCode);
     const errorType = isFatalError ? '致命的' : isTemporaryError ? '一時的' : '不明';
 
-    console.warn(`[YouTube Error] エラーコード: ${errorCode}, 種類: ${errorType}, 動画ID: ${videoId}, 時刻: ${new Date(currentTime).toLocaleTimeString()}`);
+    // エラーコードの詳細メッセージ
+    const errorMessages = {
+        2: 'リクエストに無効なパラメータが含まれています',
+        5: 'HTMLエラー',
+        100: '動画が見つかりませんでした',
+        101: '動画の所有者が埋め込み再生を許可していません',
+        150: '動画の所有者が埋め込み再生を許可していません'
+    };
+    const errorMessage = errorMessages[errorCode] || `不明なエラー (コード: ${errorCode})`;
+
+    console.error(`[YouTube Error] ${errorMessage}`);
+    console.error(`  エラーコード: ${errorCode}`);
+    console.error(`  種類: ${errorType}`);
+    console.error(`  動画ID: ${videoId}`);
+    console.error(`  映画タイトル: ${movie?.title || 'unknown'}`);
+    console.error(`  時刻: ${new Date(currentTime).toLocaleString()}`);
 
     // 致命的なエラーの場合は即座にスキップ（連続スキップチェックなし）
     if (isFatalError) {

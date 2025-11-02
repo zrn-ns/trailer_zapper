@@ -28,6 +28,7 @@ body {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+    touch-action: pan-y;  /* iOS Safariでのピンチズーム無効化 */
 }
 
 /* 没入型ステージ */

@@ -1,5 +1,26 @@
 console.log('Trailer Zapperのスクリプトが読み込まれました。');
 
+// --- iOS Safariでのピンチズーム無効化 ---
+// iOS 10以降ではviewportのuser-scalable=noが無視されるため、JavaScriptで対応
+document.addEventListener('gesturestart', (e) => {
+    e.preventDefault();
+});
+
+document.addEventListener('gesturechange', (e) => {
+    e.preventDefault();
+});
+
+document.addEventListener('gestureend', (e) => {
+    e.preventDefault();
+});
+
+// マルチタッチによるズームを防ぐ
+document.addEventListener('touchmove', (e) => {
+    if (e.touches.length > 1) {
+        e.preventDefault();
+    }
+}, { passive: false });
+
 // --- API設定 ---
 // APIキーはプロキシサーバー経由で安全に管理されます
 // ローカル開発環境ではプロキシサーバー（ポート3000）を使用

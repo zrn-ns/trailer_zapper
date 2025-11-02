@@ -153,6 +153,10 @@ async function displayTrailer(youtubeKey) {
             controls: 0,
             modestbranding: 1,
             mute: 1, // onReadyで音声設定を適用するため、最初はミュート
+            iv_load_policy: 3, // アノテーションを非表示
+            disablekb: 1, // キーボード操作を無効化
+            playsinline: 1, // モバイルでインライン再生
+            fs: 0, // フルスクリーンボタンを非表示
         },
         events: {
             onReady: (event) => {

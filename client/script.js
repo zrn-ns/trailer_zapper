@@ -92,6 +92,7 @@ const theaterScreen = document.getElementById('theater-screen');
 // --- ブザー音の設定 ---
 const buzzerAudio = new Audio('/assets/sounds/opening_buzzer.mp3');
 buzzerAudio.preload = 'auto';
+buzzerAudio.volume = 0.4; // 音量を40%に設定（0.0-1.0の範囲）
 buzzerAudio.addEventListener('error', (e) => {
     console.warn('ブザー音の読み込みに失敗しました:', e);
 });

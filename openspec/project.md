@@ -15,11 +15,14 @@ Trailer Zapperは、映画の予告編を次々と視聴できるシネマティ
 
 ## Tech Stack
 - **フロントエンド**: Vanilla JavaScript (ES6+)、HTML5、CSS3
+- **バックエンド**: Node.js、Express.js（APIプロキシサーバー）
 - **外部API**:
   - TMDB API（映画データ取得）
   - YouTube IFrame API（予告編再生）
-- **ビルドツール**: なし（静的Webアプリケーション）
-- **開発サーバー**: Python http.server、PHP built-in server、またはLive Server拡張機能
+- **ビルドツール**: なし
+- **開発サーバー**:
+  - プロキシサーバー: Node.js/Express (port 3000)
+  - クライアントサーバー: Python http.server (port 8000)
 
 ## Project Conventions
 
@@ -33,10 +36,18 @@ Trailer Zapperは、映画の予告編を次々と視聴できるシネマティ
 - **セミコロン**: 必須
 
 ### Architecture Patterns
-- **ファイル構成**: シンプルな3ファイル構成
-  - `index.html`: UIレイアウトとコンポーネント定義
-  - `script.js`: すべてのアプリケーションロジック（約700行）
-  - `style.css`: シネマティックなビジュアルデザイン
+- **ファイル構成**: クライアント/サーバー分離構成
+  - `client/`: フロントエンドファイル
+    - `index.html`: UIレイアウトとコンポーネント定義
+    - `script.js`: すべてのアプリケーションロジック（約700行）
+    - `style.css`: シネマティックなビジュアルデザイン
+  - `server/`: バックエンドプロキシ
+    - `index.js`: Express.jsプロキシサーバー
+    - `package.json`: サーバー依存関係
+- **APIアーキテクチャ**: プロキシパターン
+  - フロントエンド → Express.js プロキシ (`/api/tmdb/*`) → TMDB API
+  - APIキーはサーバーサイドの `.env` ファイルで安全に管理
+  - クライアントサイドには一切APIキーが露出しない
 - **状態管理**: グローバルstateオブジェクト（script.js:52-69）
   ```javascript
   const state = {
@@ -118,10 +129,11 @@ Trailer Zapperは、映画の予告編を次々と視聴できるシネマティ
 ## Important Constraints
 
 ### セキュリティ
-- **APIキー**: 現在クライアントサイドにハードコード（script.js:9）
-  - プロトタイプ用の実装
-  - プロダクション環境ではサーバーサイドで管理すべき
-- **機密情報**: .envファイルはコミット禁止
+- **APIキー**: Express.jsプロキシサーバーで安全に管理
+  - `.env` ファイルでサーバーサイドに保存
+  - クライアントサイドには一切露出しない
+  - `.gitignore` で `.env` をGit追跡対象外に設定
+- **機密情報**: .envファイルはコミット禁止（.gitignoreで保護）
 
 ### ブラウザ互換性
 - **モダンブラウザ**: ES6+、Fetch API、localStorage対応が必須

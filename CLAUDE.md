@@ -27,18 +27,34 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 ## 開発開始
 
+### 初回セットアップ
+
+1. サーバー依存関係をインストール:
 ```bash
-# ローカル開発サーバーの起動
-python3 -m http.server 8000
-# または
-php -S localhost:8000
+cd server && npm install && cd ..
+```
+
+2. `.env.example` をコピーして `.env` を作成し、TMDB APIキーを設定。
+
+### アプリケーションの起動
+
+```bash
+# 推奨: サーバーとクライアントを一括起動
+npm run dev
+
+# または個別起動
+npm run start:server  # プロキシサーバー (port 3000)
+npm run start:client  # クライアントサーバー (port 8000)
 ```
 
 ブラウザで `http://localhost:8000` を開いてアプリケーションを表示します。
 
 ## 重要なファイル
 
-- `index.html`: UIレイアウト
-- `script.js`: アプリケーションロジック
-- `style.css`: スタイル定義
+- `client/index.html`: UIレイアウト
+- `client/script.js`: アプリケーションロジック
+- `client/style.css`: スタイル定義
+- `server/index.js`: Express.jsプロキシサーバー
+- `.env`: 環境変数（APIキー等、Git管理外）
+- `.env.example`: 環境変数のテンプレート
 - `openspec/project.md`: プロジェクトの詳細情報

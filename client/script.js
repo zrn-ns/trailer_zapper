@@ -1,13 +1,8 @@
 console.log('Trailer Zapperのスクリプトが読み込まれました。');
 
-// --- フェーズ1: タスク2 - TMDB APIラッパーの作成 ---
-
-//【注意】
-// 本来、APIキーはサーバーサイドで管理するのが最も安全です。
-// このプロトタイプでは、クライアントサイド（ブラウザ）で完結させるため、
-// JavaScript内に直接記述します。
-const TMDB_API_KEY = 'd6f89a671e8fecb1f7cd6a6d32c66ff1';
-const API_BASE_URL = 'https://api.themoviedb.org/3';
+// --- API設定 ---
+// APIキーはプロキシサーバー経由で安全に管理されます
+const API_BASE_URL = 'http://localhost:3000/api/tmdb';
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 const REGION = 'JP';
 
@@ -19,13 +14,13 @@ const PROVIDER_IDS = {
 
 /**
  * TMDB APIからデータを非同期で取得するためのラッパー関数
+ * プロキシサーバー経由でリクエストを送信し、APIキーはサーバー側で管理されます
  * @param {string} endpoint - APIのエンドポイント (例: '/movie/popular')
  * @param {Object} [params={}] - クエリパラメータのオブジェクト (例: { page: 1 })
  * @returns {Promise<Object>} - 取得したデータのJSONオブジェクト
  */
 async function fetchFromTMDB(endpoint, params = {}) {
     const queryParams = new URLSearchParams({
-        api_key: TMDB_API_KEY,
         language: 'ja-JP', // 結果を日本語で取得
         ...params
     });

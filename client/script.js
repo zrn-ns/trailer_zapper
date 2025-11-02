@@ -189,7 +189,28 @@ async function displayTrailer(youtubeKey) {
         return false;
     }
 
-    destroyYoutubePlayer(); // 常にプレーヤーを破棄して再生成する
+    // iOS Safariの場合、既存のプレーヤーがあれば使い回す
+    if (state.isIOSSafari && state.youtubePlayer && typeof state.youtubePlayer.loadVideoById === 'function') {
+        console.log('iOS Safari: 既存プレーヤーで動画を切り替え');
+        // オーバーレイを表示（YouTube UIを隠す）
+        if (playerOverlay) {
+            playerOverlay.classList.remove('hidden');
+        }
+
+        // ユーザーが音声ONにしていた場合は音声ONで再生
+        if (state.iosUserWantsSound) {
+            state.youtubePlayer.unMute();
+        } else {
+            state.youtubePlayer.mute();
+        }
+
+        state.youtubePlayer.loadVideoById(youtubeKey);
+        state.isPaused = false;
+        updatePauseButton();
+        return true;
+    }
+
+    destroyYoutubePlayer(); // プレーヤーを破棄して再生成する
 
     // オーバーレイを表示（YouTube UIを隠す）
     if (playerOverlay) {

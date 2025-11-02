@@ -1008,6 +1008,12 @@ async function initializeApp() {
                 if (uiLayer) {
                     uiLayer.classList.remove('startup-hidden');
                 }
+                if (uiToggleButton) {
+                    uiToggleButton.style.visibility = 'visible';
+                }
+                if (aboutButton) {
+                    aboutButton.style.visibility = 'visible';
+                }
 
                 // theater-screenを非表示にしてから、暗転オーバーレイをゆっくりフェードアウト
                 setTimeout(() => {

@@ -416,6 +416,11 @@ function hideUI(force = false) {
     if (!state.hasStarted && !force) return;
     if (isManuallyHidden && !force) return;
     if (isInteracting && !force) return; // インタラクション中は非表示にしない
+
+    // 縦レイアウト（≤720px）ではUIを常に表示するため、非表示にしない
+    const isPortraitMobile = window.innerWidth <= 720;
+    if (isPortraitMobile && !force) return;
+
     if (isUIVisible) {
         uiLayer.classList.add('ui-hidden');
         isUIVisible = false;
@@ -739,10 +744,6 @@ async function initializeApp() {
     });
 
     immersiveStage.addEventListener('click', (event) => {
-        // 縦レイアウト（≤720px）ではUIは常に表示するため、切り替え機能を無効化
-        const isPortraitMobile = window.innerWidth <= 720;
-        if (isPortraitMobile) return;
-
         // クリックされた要素がUI要素でない場合、UIの表示/非表示を切り替える
         if (
             !uiLayer.contains(event.target) &&

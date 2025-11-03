@@ -164,6 +164,9 @@ const fullscreenStartButton = document.getElementById('fullscreen-start-button')
 const dimmingOverlay = document.getElementById('dimming-overlay');
 const theaterScreen = document.getElementById('theater-screen');
 const iosUnmuteButton = document.getElementById('ios-unmute-button');
+const emptyState = document.getElementById('empty-state');
+const emptyStateTitle = document.getElementById('empty-state-title');
+const emptyStateMessage = document.getElementById('empty-state-message');
 
 // --- ブザー音の設定 ---
 const buzzerAudio = new Audio('/assets/sounds/opening_buzzer.mp3');
@@ -290,9 +293,17 @@ async function displayTrailer(youtubeKey) {
         await loadYoutubeApiScript();
     } catch (error) {
         console.error(error);
-        showLoadingMessage('予告映像プレーヤーの初期化に失敗しました。');
+        showLoadingMessage(
+            'プレーヤーの初期化中にエラーが発生しました。次の映像に進みます。',
+            '再生エラー'
+        );
         playNext();
         return false;
+    }
+
+    // 空状態を非表示
+    if (emptyState) {
+        emptyState.classList.add('hidden');
     }
 
     // iOS Safariの場合、既存のプレーヤーがあれば使い回す
@@ -323,7 +334,12 @@ async function displayTrailer(youtubeKey) {
         playerOverlay.classList.remove('hidden');
     }
 
-    playerContainer.innerHTML = ''; // コンテナをクリア
+    // 既存のYouTubeプレーヤー要素だけを削除（empty-stateは残す）
+    const existingPlayer = playerContainer.querySelector('#youtube-player');
+    if (existingPlayer) {
+        existingPlayer.remove();
+    }
+
     const playerHost = document.createElement('div');
     playerHost.id = 'youtube-player';
     playerContainer.appendChild(playerHost);
@@ -399,15 +415,27 @@ function displayMovieInfo(movie) {
     }
 }
 
-function showLoadingMessage(message) {
+function showLoadingMessage(message, title = '映像が見つかりません') {
     destroyYoutubePlayer();
-    // オーバーレイのスピナーで代用するため、メッセージは非表示
-    playerContainer.innerHTML = '';
+
+    // YouTube iframeだけを削除（empty-stateは残す）
+    const youtubePlayer = playerContainer.querySelector('#youtube-player');
+    if (youtubePlayer) {
+        youtubePlayer.remove();
+    }
+
     movieInfoContainer.innerHTML = '';
 
-    // オーバーレイを表示
+    // オーバーレイを非表示（空状態を表示するため）
     if (playerOverlay) {
-        playerOverlay.classList.remove('hidden');
+        playerOverlay.classList.add('hidden');
+    }
+
+    // 空状態メッセージを表示
+    if (emptyState && emptyStateTitle && emptyStateMessage) {
+        emptyStateTitle.textContent = title;
+        emptyStateMessage.textContent = message;
+        emptyState.classList.remove('hidden');
     }
 
     if (pauseButton) {
@@ -931,13 +959,19 @@ async function loadAndDisplayTrailer(index) {
             if (state.movies.length > index) {
                 loadAndDisplayTrailer(index);
             } else {
-                showLoadingMessage('再生可能な予告映像がこれ以上見つかりませんでした。');
+                showLoadingMessage(
+                    '予告映像が見つかりませんでした。フィルター条件を変更してみてください。',
+                    '予告映像なし'
+                );
             }
             return;
         } else {
             // すべてのページを試したか、現在フェッチ中の場合
             console.log('すべての映画の予告映像を試しましたが、これ以上見つかりませんでした。');
-            showLoadingMessage('再生可能な予告映像がこれ以上見つかりませんでした。');
+            showLoadingMessage(
+                '予告映像が見つかりませんでした。フィルター条件を変更してみてください。',
+                '予告映像なし'
+            );
             updateButtonStates();
             return;
         }
@@ -1104,12 +1138,21 @@ async function updateAndFetchMovies(resetPage = true) {
         // state.selectedProvidersを使用（applyFiltersで既に設定済み）
         if (state.selectedProviders.length === 0) {
             state.movies = [];
-            showLoadingMessage('視聴したい配信サービスを選択してください。');
+            showLoadingMessage(
+                '配信サービスを選択してください。「配信サービスで絞り込み」から視聴したいサービスを選んで、「適用」ボタンを押してください。',
+                '配信サービス未選択'
+            );
             updateButtonStates();
             return;
         }
 
-        showLoadingMessage('映画情報を取得中...');
+        // ローディング中はオーバーレイのみ表示（メッセージ不要）
+        if (playerOverlay) {
+            playerOverlay.classList.remove('hidden');
+        }
+        if (emptyState) {
+            emptyState.classList.add('hidden');
+        }
 
         let pageToFetch = state.currentPage;
         const targetIndex = resetPage
@@ -1135,7 +1178,10 @@ async function updateAndFetchMovies(resetPage = true) {
 
             if (!movieData || !movieData.results) {
                 state.movies = resetPage ? [] : existingMovies;
-                showLoadingMessage('選択されたサービスで視聴可能な映画が見つかりませんでした。');
+                showLoadingMessage(
+                    '映画が見つかりませんでした。フィルター条件を変更してみてください。',
+                    '映画なし'
+                );
                 updateButtonStates();
                 return;
             }
@@ -1165,7 +1211,10 @@ async function updateAndFetchMovies(resetPage = true) {
 
             if (pageToFetch >= state.totalPages) {
                 state.movies = resetPage ? [] : existingMovies;
-                showLoadingMessage('視聴可能な映画はすべて再生済みです。');
+                showLoadingMessage(
+                    'すべての映画を再生しました。フィルター条件を変更して、新しい映画を見つけてみてください。',
+                    'すべて再生済み'
+                );
                 updateButtonStates();
                 return;
             }

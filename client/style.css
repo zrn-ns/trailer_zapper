@@ -191,6 +191,50 @@ body {
     pointer-events: none;
 }
 
+/* 空状態メッセージ（映画館のスクリーン風） */
+.empty-state {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(16px, 3vh, 32px);
+    padding: 32px;
+    background: #000;
+    z-index: 5;
+    text-align: center;
+}
+
+.empty-state.hidden {
+    display: none;
+}
+
+.empty-state__icon {
+    font-size: clamp(3rem, 8vw, 5rem);
+    opacity: 0.4;
+    filter: grayscale(0.3);
+    line-height: 1;
+}
+
+.empty-state__title {
+    margin: 0;
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: var(--text-primary);
+    opacity: 0.9;
+}
+
+.empty-state__message {
+    margin: 0;
+    font-size: clamp(0.95rem, 2vw, 1.1rem);
+    line-height: 1.8;
+    color: var(--text-secondary);
+    max-width: 480px;
+    opacity: 0.8;
+}
+
 /* フィルムグレインエフェクト */
 .film-grain {
     position: absolute;

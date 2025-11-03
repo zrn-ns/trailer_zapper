@@ -956,32 +956,14 @@ async function loadAndDisplayTrailer(index) {
 async function applyFilters() {
     console.log('[フィルター適用] 適用ボタンがクリックされました');
 
-    // 全プロバイダーチェックボックスから選択されているIDを収集
-    const allProviderCheckboxes = [
-        netflixFilter,
-        primeVideoFilter,
-        huluFilter,
-        uNextFilter,
-        disneyPlusFilter,
-        appleTvPlusFilter
-    ];
-
-    const selectedProviders = [];
-    if (netflixFilter && netflixFilter.checked) selectedProviders.push(PROVIDER_IDS.NETFLIX);
-    if (primeVideoFilter && primeVideoFilter.checked) selectedProviders.push(PROVIDER_IDS.PRIME_VIDEO);
-    if (huluFilter && huluFilter.checked) selectedProviders.push(PROVIDER_IDS.HULU);
-    if (uNextFilter && uNextFilter.checked) selectedProviders.push(PROVIDER_IDS.U_NEXT);
-    if (disneyPlusFilter && disneyPlusFilter.checked) selectedProviders.push(PROVIDER_IDS.DISNEY_PLUS);
-    if (appleTvPlusFilter && appleTvPlusFilter.checked) selectedProviders.push(PROVIDER_IDS.APPLE_TV_PLUS);
-
     // 最低1つのプロバイダーが選択されているか検証
-    if (selectedProviders.length === 0) {
+    if (pendingState.providers.length === 0) {
         alert('少なくとも1つの配信サービスを選択してください。');
         return;
     }
 
     // pendingStateから確定状態（state）にコピー
-    state.selectedProviders = selectedProviders;
+    state.selectedProviders = pendingState.providers.slice();
     state.sortOrder = pendingState.sortOrder;
     state.selectedGenres = new Set(pendingState.genres);
 

@@ -1297,9 +1297,11 @@ async function initializeApp() {
 
     // localStorageから設定を読み込み
     const savedProviders = JSON.parse(localStorage.getItem('selectedProviders'));
+    console.log('[初期化] localStorageから読み込んだプロバイダー:', savedProviders);
 
     // 初回訪問時（localStorageが空）はデフォルトで全6サービスをチェック
     if (savedProviders === null) {
+        console.log('[初期化] 初回訪問 → 全6サービスをデフォルトで選択');
         if (netflixFilter) netflixFilter.checked = true;
         if (primeVideoFilter) primeVideoFilter.checked = true;
         if (huluFilter) huluFilter.checked = true;
@@ -1318,6 +1320,7 @@ async function initializeApp() {
         ];
         pendingState.providers = state.selectedProviders.slice();
     } else {
+        console.log('[初期化] 保存された設定を復元:', JSON.stringify(savedProviders));
         // 保存された設定がある場合はそれを適用
         if (netflixFilter) netflixFilter.checked = savedProviders.includes(PROVIDER_IDS.NETFLIX);
         if (primeVideoFilter) primeVideoFilter.checked = savedProviders.includes(PROVIDER_IDS.PRIME_VIDEO);
@@ -1328,6 +1331,8 @@ async function initializeApp() {
 
         state.selectedProviders = savedProviders;
         pendingState.providers = savedProviders.slice();
+        console.log('[初期化] state.selectedProviders:', JSON.stringify(state.selectedProviders));
+        console.log('[初期化] pendingState.providers:', JSON.stringify(pendingState.providers));
     }
 
     const savedProcessed = JSON.parse(localStorage.getItem('processedMovies')) || [];

@@ -122,6 +122,7 @@ const uiToggleButton = document.getElementById('ui-toggle-button');
 const playerShell = document.querySelector('.player-shell');
 const startModal = document.getElementById('start-modal');
 const startButton = document.getElementById('start-button');
+const fullscreenStartButton = document.getElementById('fullscreen-start-button');
 const dimmingOverlay = document.getElementById('dimming-overlay');
 const theaterScreen = document.getElementById('theater-screen');
 const iosUnmuteButton = document.getElementById('ios-unmute-button');
@@ -204,7 +205,7 @@ async function displayTrailer(youtubeKey) {
         await loadYoutubeApiScript();
     } catch (error) {
         console.error(error);
-        showLoadingMessage('予告編プレーヤーの初期化に失敗しました。');
+        showLoadingMessage('予告映像プレーヤーの初期化に失敗しました。');
         playNext();
         return false;
     }
@@ -792,13 +793,13 @@ async function loadAndDisplayTrailer(index) {
             if (state.movies.length > index) {
                 loadAndDisplayTrailer(index);
             } else {
-                showLoadingMessage('再生可能な予告編がこれ以上見つかりませんでした。');
+                showLoadingMessage('再生可能な予告映像がこれ以上見つかりませんでした。');
             }
             return;
         } else {
             // すべてのページを試したか、現在フェッチ中の場合
-            console.log('すべての映画の予告編を試しましたが、これ以上見つかりませんでした。');
-            showLoadingMessage('再生可能な予告編がこれ以上見つかりませんでした。');
+            console.log('すべての映画の予告映像を試しましたが、これ以上見つかりませんでした。');
+            showLoadingMessage('再生可能な予告映像がこれ以上見つかりませんでした。');
             updateButtonStates();
             return;
         }
@@ -811,7 +812,7 @@ async function loadAndDisplayTrailer(index) {
     }
     updateButtonStates();
     const movie = state.movies[state.currentMovieIndex];
-    console.log(`'${movie.title}' の予告編を検索中...`);
+    console.log(`'${movie.title}' の予告映像を検索中...`);
 
     const videosData = await fetchFromTMDB(`/movie/${movie.id}/videos`);
 
@@ -822,7 +823,7 @@ async function loadAndDisplayTrailer(index) {
         const videoToPlay = trailer || teaser || anyVideo;
 
         if (videoToPlay) {
-            console.log(`再生する予告編: ${movie.title}`);
+            console.log(`再生する予告映像: ${movie.title}`);
             const started = await displayTrailer(videoToPlay.key);
             if (started) {
                 displayMovieInfo(movie);
@@ -831,7 +832,7 @@ async function loadAndDisplayTrailer(index) {
         }
     }
 
-    console.log(`'${movie.title}' に再生可能な予告編が見つかりませんでした。次の映画を試します。`);
+    console.log(`'${movie.title}' に再生可能な予告映像が見つかりませんでした。次の映画を試します。`);
     playNext();
 }
 
@@ -1206,7 +1207,26 @@ async function initializeApp() {
             startScreening();
         }, { once: true });
 
-        // ボタンのクリックイベント
+        // 全画面表示ボタンのクリックイベント
+        if (fullscreenStartButton) {
+            fullscreenStartButton.addEventListener('click', async (event) => {
+                // イベント伝播を停止（親要素のクリックイベントを発火させない）
+                event.stopPropagation();
+
+                // スタートモーダルはimmersive-stageの外にあるため、
+                // document.documentElement（ページ全体）をフルスクリーンにする
+                try {
+                    if (!document.fullscreenElement) {
+                        await document.documentElement.requestFullscreen();
+                        console.log('フルスクリーンモードを有効化しました');
+                    }
+                } catch (error) {
+                    console.warn('フルスクリーンモードの有効化に失敗しました:', error);
+                }
+            });
+        }
+
+        // 上映開始ボタンのクリックイベント
         startButton.addEventListener('click', (event) => {
             // イベント伝播を停止（親要素のクリックイベントを発火させない）
             event.stopPropagation();

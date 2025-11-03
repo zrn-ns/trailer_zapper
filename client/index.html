@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="お気に入りの配信サービスから、次に観る予告編をシネマティックに発見しよう。">
+    <meta name="description" content="次に観る映画をシネマティックに発見しよう。">
     <title>Trailer Zapper</title>
 
     <!-- OGP (Open Graph Protocol) -->
     <meta property="og:title" content="Trailer Zapper">
-    <meta property="og:description" content="お気に入りの配信サービスから、次に観る予告編をシネマティックに発見しよう。">
+    <meta property="og:description" content="次に観る映画をシネマティックに発見しよう。">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://trailer-zapper.vercel.app/">
     <meta property="og:image" content="https://trailer-zapper.vercel.app/ogp.png">
@@ -18,7 +18,7 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Trailer Zapper">
-    <meta name="twitter:description" content="お気に入りの配信サービスから、次に観る予告編をシネマティックに発見しよう。">
+    <meta name="twitter:description" content="次に観る映画をシネマティックに発見しよう。">
     <meta name="twitter:image" content="https://trailer-zapper.vercel.app/ogp.png">
 
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -45,7 +45,7 @@
         <div id="app" class="ui-layer startup-hidden">
             <header class="hero-header">
                 <h1>Trailer Zapper</h1>
-                <p class="hero-tagline">お気に入りの配信サービスから、次に観る予告編をシネマティックに発見しよう。</p>
+                <p class="hero-tagline">次に観る映画をシネマティックに発見しよう。</p>
             </header>
 
             <div class="hud">
@@ -105,8 +105,17 @@
         <div class="start-modal__content">
             <div class="cinema-ornament">◆</div>
             <h2>TRAILER ZAPPER</h2>
-            <p>これより予告編をお楽しみください</p>
-            <button id="start-button" class="primary-button">上映開始</button>
+            <p class="start-modal__welcome">次に観る映画をシネマティックに発見しよう。</p>
+
+            <div class="start-modal__guide">
+                <p class="start-modal__guide-text">全画面にして、集中して予告映像をお楽しみください。</p>
+            </div>
+
+            <div class="start-modal__buttons">
+                <button id="fullscreen-start-button" class="secondary-button">全画面で観る</button>
+                <button id="start-button" class="primary-button">上映開始</button>
+            </div>
+
             <div class="cinema-ornament">◆</div>
         </div>
     </div>
@@ -134,7 +143,7 @@
             <div class="about-modal__body">
                 <section class="about-section about-section--app">
                     <h4>Trailer Zapper</h4>
-                    <p>お気に入りの配信サービスから、次に観る予告編をシネマティックに発見しよう。</p>
+                    <p>次に観る映画をシネマティックに発見しよう。</p>
                 </section>
 
                 <section class="about-section">

@@ -826,7 +826,7 @@ body {
     align-items: center;
     justify-content: center;
     background: transparent;
-    z-index: 100;
+    z-index: 999;
     transition: opacity 0.5s ease-in;
 }
 
@@ -847,7 +847,7 @@ body {
     flex-direction: column;
     gap: 20px;
     position: relative;
-    z-index: 101;
+    z-index: 1000;
 }
 
 .cinema-ornament {
@@ -876,6 +876,84 @@ body {
     text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
 }
 
+/* スタートモーダル：ウェルカムメッセージ */
+.start-modal__welcome {
+    font-size: clamp(1rem, 2.2vw, 1.15rem);
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* スタートモーダル：ガイドセクション */
+.start-modal__guide {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin: 8px 0;
+}
+
+.start-modal__guide-text {
+    font-size: clamp(0.9rem, 2vw, 1rem);
+    color: var(--text-secondary);
+    opacity: 0.9;
+}
+
+/* キーボードショートカット */
+.start-modal__shortcuts {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 75, 107, 0.2);
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.shortcuts-title {
+    margin: 0 0 12px 0;
+    font-size: clamp(0.85rem, 1.8vw, 0.95rem);
+    color: var(--accent);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+}
+
+.shortcuts-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.shortcut-item {
+    font-size: clamp(0.8rem, 1.7vw, 0.9rem);
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.shortcut-item kbd {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.85em;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-right: 4px;
+}
+
+/* 全画面推奨メッセージ */
+.start-modal__fullscreen-tip {
+    font-size: clamp(0.9rem, 2vw, 1rem);
+    color: var(--accent);
+    opacity: 0.9;
+}
+
+/* ボタンコンテナ */
+.start-modal__buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
 .primary-button {
     flex: 1;
     border: none;
@@ -900,6 +978,32 @@ body {
     opacity: 0.45;
     cursor: not-allowed;
     box-shadow: none;
+}
+
+.secondary-button {
+    flex: 1;
+    border: 2px solid rgba(255, 75, 107, 0.6);
+    border-radius: 999px;
+    padding: 14px 20px;
+    font-size: 1rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: rgba(255, 75, 107, 0.1);
+    color: var(--accent);
+    cursor: pointer;
+    transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease, opacity 0.25s ease;
+    backdrop-filter: blur(4px);
+}
+
+.secondary-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    background: rgba(255, 75, 107, 0.2);
+    border-color: var(--accent);
+}
+
+.secondary-button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
 }
 
 /* タブレット用スタイル（削除 - 721-1024pxは下記の専用ルールを使用） */

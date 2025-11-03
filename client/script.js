@@ -191,6 +191,7 @@ function hasPendingChanges() {
 function updateFilterButtonStates() {
     const hasChanges = hasPendingChanges();
 
+    // 適用ボタン：変更がある場合のみ有効
     if (applyFiltersButton) {
         applyFiltersButton.disabled = !hasChanges;
         if (hasChanges) {
@@ -200,8 +201,9 @@ function updateFilterButtonStates() {
         }
     }
 
+    // リセットボタン：常に有効（いつでもデフォルト状態に戻せる）
     if (resetFiltersButton) {
-        resetFiltersButton.disabled = !hasChanges;
+        resetFiltersButton.disabled = false;
     }
 }
 

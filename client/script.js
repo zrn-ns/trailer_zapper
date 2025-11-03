@@ -73,6 +73,9 @@ async function fetchFromTMDB(endpoint, params = {}) {
     }
 }
 
+// --- 定数 ---
+const MAX_PROCESSED_MOVIES = 2500; // 再生済み作品の最大保持件数
+
 // --- グローバル変数と状態管理 ---
 const state = {
     movies: [],
@@ -86,7 +89,8 @@ const state = {
     currentPage: 1,
     totalPages: 1,
     isFetchingMovies: false,
-    processedMovies: new Set(),
+    processedMovies: new Set(), // 高速検索用（映画IDのみ）
+    processedMoviesHistory: [], // タイムスタンプ付き履歴 [{id: number, timestamp: number}, ...]
     isPaused: false,
     isSoundEnabled: false,
     hasStarted: false,
@@ -482,7 +486,27 @@ function handleYoutubeStateChange(event) {
 }
 
 function persistProcessedMovies() {
-    localStorage.setItem('processedMovies', JSON.stringify(Array.from(state.processedMovies)));
+    // タイムスタンプ付き履歴をlocalStorageに保存
+    localStorage.setItem('processedMovies', JSON.stringify(state.processedMoviesHistory));
+}
+
+function trimProcessedMoviesHistory() {
+    // 2500件を超えた場合、古いものから削除
+    if (state.processedMoviesHistory.length > MAX_PROCESSED_MOVIES) {
+        // タイムスタンプでソート（古い順）
+        state.processedMoviesHistory.sort((a, b) => a.timestamp - b.timestamp);
+
+        // 超過分を削除
+        const toRemove = state.processedMoviesHistory.length - MAX_PROCESSED_MOVIES;
+        const removed = state.processedMoviesHistory.splice(0, toRemove);
+
+        // Setからも削除
+        removed.forEach(item => {
+            state.processedMovies.delete(item.id);
+        });
+
+        console.log(`[履歴管理] 古い再生済み作品${toRemove}件を削除しました。現在の保持件数: ${state.processedMoviesHistory.length}`);
+    }
 }
 
 function markCurrentMovieProcessed() {
@@ -490,8 +514,23 @@ function markCurrentMovieProcessed() {
     if (!movie) return;
 
     if (!state.processedMovies.has(movie.id)) {
+        const timestamp = Date.now();
+
+        // Setに追加（高速検索用）
         state.processedMovies.add(movie.id);
+
+        // タイムスタンプ付き履歴に追加
+        state.processedMoviesHistory.push({
+            id: movie.id,
+            timestamp: timestamp
+        });
+
+        // 2500件を超えた場合は古いものを削除
+        trimProcessedMoviesHistory();
+
+        // localStorageに保存
         persistProcessedMovies();
+
         console.log(`[再生済み] ${movie.title} (ID: ${movie.id}) を記録しました。現在の再生済み作品数: ${state.processedMovies.size}`);
     }
 }
@@ -1093,9 +1132,37 @@ async function initializeApp() {
     }
 
     const savedProcessed = JSON.parse(localStorage.getItem('processedMovies')) || [];
-    state.processedMovies = new Set(savedProcessed);
+
+    // 既存データとの互換性を確保
     if (savedProcessed.length > 0) {
-        console.log(`[初期化] 再生済み作品を${savedProcessed.length}件読み込みました`);
+        const firstItem = savedProcessed[0];
+        const now = Date.now();
+
+        if (typeof firstItem === 'number') {
+            // 旧形式（IDのみの配列）の場合
+            console.log(`[初期化] 旧形式の再生済みデータを検出。新形式に変換します...`);
+            state.processedMoviesHistory = savedProcessed.map(id => ({
+                id: id,
+                timestamp: now // 既存データには現在時刻を設定
+            }));
+            state.processedMovies = new Set(savedProcessed);
+
+            // 新形式で保存し直す
+            persistProcessedMovies();
+            console.log(`[初期化] 再生済み作品を${savedProcessed.length}件読み込みました（新形式に変換完了）`);
+        } else if (typeof firstItem === 'object' && firstItem.id !== undefined) {
+            // 新形式（オブジェクト配列）の場合
+            state.processedMoviesHistory = savedProcessed;
+            state.processedMovies = new Set(savedProcessed.map(item => item.id));
+            console.log(`[初期化] 再生済み作品を${savedProcessed.length}件読み込みました`);
+        } else {
+            console.warn(`[初期化] 不明な形式の再生済みデータです。初期化します。`);
+            state.processedMoviesHistory = [];
+            state.processedMovies = new Set();
+        }
+
+        // 2500件を超えている場合は古いものを削除
+        trimProcessedMoviesHistory();
     }
 
     const savedSelectedGenres = JSON.parse(localStorage.getItem('selectedGenres')) || [];

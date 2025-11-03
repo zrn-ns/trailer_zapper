@@ -59,6 +59,18 @@
                             <label>
                                 <input type="checkbox" name="provider" value="9" id="prime-video-filter" checked> Prime Video
                             </label>
+                            <label>
+                                <input type="checkbox" name="provider" value="15" id="hulu-filter" checked> Hulu
+                            </label>
+                            <label>
+                                <input type="checkbox" name="provider" value="84" id="u-next-filter" checked> U-NEXT
+                            </label>
+                            <label>
+                                <input type="checkbox" name="provider" value="337" id="disney-plus-filter" checked> Disney Plus
+                            </label>
+                            <label>
+                                <input type="checkbox" name="provider" value="350" id="apple-tv-plus-filter" checked> Apple TV+
+                            </label>
                         </div>
                     </div>
                     <div class="panel-section">
@@ -81,7 +93,11 @@
                     <div class="panel-section">
                         <button id="genre-filter-toggle" class="ghost-button">ジャンルで絞り込み</button>
                     </div>
-                    <p class="panel-hint">ジャンルタグをクリックしても同じように絞り込みできます。</p>
+                    <div class="panel-section panel-section--buttons">
+                        <button id="apply-filters-button" class="primary-button">適用</button>
+                        <button id="reset-filters-button" class="ghost-button">リセット</button>
+                    </div>
+                    <p class="panel-hint">フィルター条件を変更したら「適用」ボタンをクリックして反映してください。</p>
                 </aside>
 
                 <section id="movie-info" class="info-panel"></section>

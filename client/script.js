@@ -40,6 +40,10 @@ const REGION = 'JP';
 const PROVIDER_IDS = {
     NETFLIX: '8',
     PRIME_VIDEO: '9',
+    HULU: '15',
+    U_NEXT: '84',
+    DISNEY_PLUS: '337',
+    APPLE_TV_PLUS: '350',
 };
 
 /**
@@ -101,12 +105,26 @@ const state = {
     iosUserWantsSound: false, // iOS Safariでユーザーが音声をリクエストしたかどうか
 };
 
+// --- Pending State（遅延フィルター適用用）---
+// フィルター条件の一時的な状態を保持し、「適用」ボタンで確定する
+const pendingState = {
+    providers: [], // 選択中の配信サービスID（一時）
+    sortOrder: 'popularity.desc', // 選択中のソート順（一時）
+    genres: new Set(), // 選択中のジャンルID（一時）
+};
+
 // --- DOM要素 ---
 const appContainer = document.getElementById('app');
 const prevButton = document.getElementById('prev-button');
 const nextButton = document.getElementById('next-button');
 const netflixFilter = document.getElementById('netflix-filter');
 const primeVideoFilter = document.getElementById('prime-video-filter');
+const huluFilter = document.getElementById('hulu-filter');
+const uNextFilter = document.getElementById('u-next-filter');
+const disneyPlusFilter = document.getElementById('disney-plus-filter');
+const appleTvPlusFilter = document.getElementById('apple-tv-plus-filter');
+const applyFiltersButton = document.getElementById('apply-filters-button');
+const resetFiltersButton = document.getElementById('reset-filters-button');
 const sortOrderSelect = document.getElementById('sort-order');
 const playerContainer = document.getElementById('player-container');
 const playerOverlay = document.getElementById('player-overlay');
@@ -142,6 +160,51 @@ buzzerAudio.addEventListener('error', (e) => {
 buzzerAudio.load();
 
 // --- iOS Safari検出 ---
+/**
+ * フィルター条件に未適用の変更があるかチェックする
+ * @returns {boolean} 未適用の変更がある場合true
+ */
+function hasPendingChanges() {
+    // プロバイダーの比較
+    const currentProviders = state.selectedProviders.slice().sort().join(',');
+    const pendingProviders = pendingState.providers.slice().sort().join(',');
+    if (currentProviders !== pendingProviders) return true;
+
+    // ソート順の比較
+    if (state.sortOrder !== pendingState.sortOrder) return true;
+
+    // ジャンルの比較
+    if (state.selectedGenres.size !== pendingState.genres.size) return true;
+    for (const genreId of state.selectedGenres) {
+        if (!pendingState.genres.has(genreId)) return true;
+    }
+    for (const genreId of pendingState.genres) {
+        if (!state.selectedGenres.has(genreId)) return true;
+    }
+
+    return false;
+}
+
+/**
+ * 適用/リセットボタンの有効/無効状態を更新する
+ */
+function updateFilterButtonStates() {
+    const hasChanges = hasPendingChanges();
+
+    if (applyFiltersButton) {
+        applyFiltersButton.disabled = !hasChanges;
+        if (hasChanges) {
+            applyFiltersButton.classList.add('has-pending-changes');
+        } else {
+            applyFiltersButton.classList.remove('has-pending-changes');
+        }
+    }
+
+    if (resetFiltersButton) {
+        resetFiltersButton.disabled = !hasChanges;
+    }
+}
+
 /**
  * iOS Safariを検出する関数
  * iOS Safariでは、ミュートされていない動画の自動再生が許可されないため、
@@ -539,7 +602,11 @@ function loadSortOrder() {
     const saved = localStorage.getItem('sortOrder');
     if (saved) {
         state.sortOrder = saved;
+        pendingState.sortOrder = saved;
         sortOrderSelect.value = saved;
+    } else {
+        // デフォルト値をpendingStateにも設定
+        pendingState.sortOrder = state.sortOrder;
     }
 }
 
@@ -883,6 +950,94 @@ async function loadAndDisplayTrailer(index) {
     playNext();
 }
 
+/**
+ * フィルター条件を適用してAPIリクエストを送信する
+ */
+async function applyFilters() {
+    console.log('[フィルター適用] 適用ボタンがクリックされました');
+
+    // 全プロバイダーチェックボックスから選択されているIDを収集
+    const allProviderCheckboxes = [
+        netflixFilter,
+        primeVideoFilter,
+        huluFilter,
+        uNextFilter,
+        disneyPlusFilter,
+        appleTvPlusFilter
+    ];
+
+    const selectedProviders = [];
+    if (netflixFilter && netflixFilter.checked) selectedProviders.push(PROVIDER_IDS.NETFLIX);
+    if (primeVideoFilter && primeVideoFilter.checked) selectedProviders.push(PROVIDER_IDS.PRIME_VIDEO);
+    if (huluFilter && huluFilter.checked) selectedProviders.push(PROVIDER_IDS.HULU);
+    if (uNextFilter && uNextFilter.checked) selectedProviders.push(PROVIDER_IDS.U_NEXT);
+    if (disneyPlusFilter && disneyPlusFilter.checked) selectedProviders.push(PROVIDER_IDS.DISNEY_PLUS);
+    if (appleTvPlusFilter && appleTvPlusFilter.checked) selectedProviders.push(PROVIDER_IDS.APPLE_TV_PLUS);
+
+    // 最低1つのプロバイダーが選択されているか検証
+    if (selectedProviders.length === 0) {
+        alert('少なくとも1つの配信サービスを選択してください。');
+        return;
+    }
+
+    // pendingStateから確定状態（state）にコピー
+    state.selectedProviders = selectedProviders;
+    state.sortOrder = pendingState.sortOrder;
+    state.selectedGenres = new Set(pendingState.genres);
+
+    // localStorageに保存
+    localStorage.setItem('selectedProviders', JSON.stringify(state.selectedProviders));
+    localStorage.setItem('sortOrder', state.sortOrder);
+    localStorage.setItem('selectedGenres', JSON.stringify(Array.from(state.selectedGenres)));
+
+    console.log(`[フィルター適用] プロバイダー: ${state.selectedProviders.length}個, ソート: ${state.sortOrder}, ジャンル: ${state.selectedGenres.size}個`);
+
+    // 映画リストと履歴をリセット
+    state.movies = [];
+    state.history = [];
+    state.currentMovieIndex = 0;
+
+    // 適用/リセットボタンを無効化
+    updateFilterButtonStates();
+
+    // APIリクエストを実行
+    await updateAndFetchMovies(true);
+}
+
+/**
+ * フィルター条件の変更を破棄し、確定状態に戻す
+ */
+function resetFilters() {
+    console.log('[フィルター] リセットボタンがクリックされました');
+
+    // 確定状態（state）からpendingStateにコピー
+    pendingState.providers = state.selectedProviders.slice();
+    pendingState.sortOrder = state.sortOrder;
+    pendingState.genres = new Set(state.selectedGenres);
+
+    // UIコントロールを確定状態に戻す
+    if (netflixFilter) netflixFilter.checked = state.selectedProviders.includes(PROVIDER_IDS.NETFLIX);
+    if (primeVideoFilter) primeVideoFilter.checked = state.selectedProviders.includes(PROVIDER_IDS.PRIME_VIDEO);
+    if (huluFilter) huluFilter.checked = state.selectedProviders.includes(PROVIDER_IDS.HULU);
+    if (uNextFilter) uNextFilter.checked = state.selectedProviders.includes(PROVIDER_IDS.U_NEXT);
+    if (disneyPlusFilter) disneyPlusFilter.checked = state.selectedProviders.includes(PROVIDER_IDS.DISNEY_PLUS);
+    if (appleTvPlusFilter) appleTvPlusFilter.checked = state.selectedProviders.includes(PROVIDER_IDS.APPLE_TV_PLUS);
+
+    if (sortOrderSelect) sortOrderSelect.value = state.sortOrder;
+
+    // ジャンルフィルターのUIもリセット
+    const genreCheckboxes = genreFilterList.querySelectorAll('input[type="checkbox"]');
+    genreCheckboxes.forEach(checkbox => {
+        const genreId = parseInt(checkbox.value);
+        checkbox.checked = state.selectedGenres.has(genreId);
+    });
+
+    // ボタンの状態を更新
+    updateFilterButtonStates();
+
+    console.log('[フィルター] リセット完了');
+}
+
 async function updateAndFetchMovies(resetPage = true) {
     if (state.isFetchingMovies) return;
     state.isFetchingMovies = true;
@@ -1032,18 +1187,33 @@ async function initializeApp() {
         });
         uiToggleButton.textContent = isManuallyHidden ? '○' : '◉';
     }
-    netflixFilter.addEventListener('change', () => updateAndFetchMovies(true));
-    primeVideoFilter.addEventListener('change', () => updateAndFetchMovies(true));
+    // プロバイダーフィルターの変更 → pendingStateを更新（即座に適用しない）
+    const providerChangeHandler = () => {
+        const selectedProviders = [];
+        if (netflixFilter && netflixFilter.checked) selectedProviders.push(PROVIDER_IDS.NETFLIX);
+        if (primeVideoFilter && primeVideoFilter.checked) selectedProviders.push(PROVIDER_IDS.PRIME_VIDEO);
+        if (huluFilter && huluFilter.checked) selectedProviders.push(PROVIDER_IDS.HULU);
+        if (uNextFilter && uNextFilter.checked) selectedProviders.push(PROVIDER_IDS.U_NEXT);
+        if (disneyPlusFilter && disneyPlusFilter.checked) selectedProviders.push(PROVIDER_IDS.DISNEY_PLUS);
+        if (appleTvPlusFilter && appleTvPlusFilter.checked) selectedProviders.push(PROVIDER_IDS.APPLE_TV_PLUS);
 
-    // ソート順変更時のイベントハンドラー
+        pendingState.providers = selectedProviders;
+        updateFilterButtonStates();
+        console.log(`[フィルター変更] プロバイダー: ${selectedProviders.length}個選択（未適用）`);
+    };
+
+    if (netflixFilter) netflixFilter.addEventListener('change', providerChangeHandler);
+    if (primeVideoFilter) primeVideoFilter.addEventListener('change', providerChangeHandler);
+    if (huluFilter) huluFilter.addEventListener('change', providerChangeHandler);
+    if (uNextFilter) uNextFilter.addEventListener('change', providerChangeHandler);
+    if (disneyPlusFilter) disneyPlusFilter.addEventListener('change', providerChangeHandler);
+    if (appleTvPlusFilter) appleTvPlusFilter.addEventListener('change', providerChangeHandler);
+
+    // ソート順変更時のイベントハンドラー → pendingStateを更新（即座に適用しない）
     sortOrderSelect.addEventListener('change', () => {
-        state.sortOrder = sortOrderSelect.value;
-        saveSortOrder();
-
-        // ソート順変更時は履歴のみリセット（再生済み作品は除外し続ける）
-        state.history = [];
-
-        updateAndFetchMovies(true);
+        pendingState.sortOrder = sortOrderSelect.value;
+        updateFilterButtonStates();
+        console.log(`[フィルター変更] ソート順: ${pendingState.sortOrder}（未適用）`);
     });
 
     // ジャンルフィルターモーダルの開閉
@@ -1090,16 +1260,27 @@ async function initializeApp() {
         }
     });
 
+    // ジャンルフィルターの変更 → pendingStateを更新（即座に適用しない）
     genreFilterList.addEventListener('change', (event) => {
         const genreId = parseInt(event.target.value);
         if (event.target.checked) {
-            state.selectedGenres.add(genreId);
+            pendingState.genres.add(genreId);
         } else {
-            state.selectedGenres.delete(genreId);
+            pendingState.genres.delete(genreId);
         }
-        localStorage.setItem('selectedGenres', JSON.stringify(Array.from(state.selectedGenres)));
-        updateAndFetchMovies(true);
+        updateFilterButtonStates();
+        console.log(`[フィルター変更] ジャンル: ${pendingState.genres.size}個選択（未適用）`);
     });
+
+    // 適用ボタンのイベントリスナー
+    if (applyFiltersButton) {
+        applyFiltersButton.addEventListener('click', applyFilters);
+    }
+
+    // リセットボタンのイベントリスナー
+    if (resetFiltersButton) {
+        resetFiltersButton.addEventListener('click', resetFilters);
+    }
 
     movieInfoContainer.addEventListener('click', (event) => {
         if (event.target.id === 'open-service-button') {
@@ -1129,14 +1310,36 @@ async function initializeApp() {
     // localStorageから設定を読み込み
     const savedProviders = JSON.parse(localStorage.getItem('selectedProviders'));
 
-    // 初回訪問時（localStorageが空）はデフォルトで両方チェック
+    // 初回訪問時（localStorageが空）はデフォルトで全6サービスをチェック
     if (savedProviders === null) {
-        netflixFilter.checked = true;
-        primeVideoFilter.checked = true;
+        if (netflixFilter) netflixFilter.checked = true;
+        if (primeVideoFilter) primeVideoFilter.checked = true;
+        if (huluFilter) huluFilter.checked = true;
+        if (uNextFilter) uNextFilter.checked = true;
+        if (disneyPlusFilter) disneyPlusFilter.checked = true;
+        if (appleTvPlusFilter) appleTvPlusFilter.checked = true;
+
+        // 初期状態を両方のstateに設定
+        state.selectedProviders = [
+            PROVIDER_IDS.NETFLIX,
+            PROVIDER_IDS.PRIME_VIDEO,
+            PROVIDER_IDS.HULU,
+            PROVIDER_IDS.U_NEXT,
+            PROVIDER_IDS.DISNEY_PLUS,
+            PROVIDER_IDS.APPLE_TV_PLUS
+        ];
+        pendingState.providers = state.selectedProviders.slice();
     } else {
         // 保存された設定がある場合はそれを適用
-        netflixFilter.checked = savedProviders.includes(PROVIDER_IDS.NETFLIX);
-        primeVideoFilter.checked = savedProviders.includes(PROVIDER_IDS.PRIME_VIDEO);
+        if (netflixFilter) netflixFilter.checked = savedProviders.includes(PROVIDER_IDS.NETFLIX);
+        if (primeVideoFilter) primeVideoFilter.checked = savedProviders.includes(PROVIDER_IDS.PRIME_VIDEO);
+        if (huluFilter) huluFilter.checked = savedProviders.includes(PROVIDER_IDS.HULU);
+        if (uNextFilter) uNextFilter.checked = savedProviders.includes(PROVIDER_IDS.U_NEXT);
+        if (disneyPlusFilter) disneyPlusFilter.checked = savedProviders.includes(PROVIDER_IDS.DISNEY_PLUS);
+        if (appleTvPlusFilter) appleTvPlusFilter.checked = savedProviders.includes(PROVIDER_IDS.APPLE_TV_PLUS);
+
+        state.selectedProviders = savedProviders;
+        pendingState.providers = savedProviders.slice();
     }
 
     const savedProcessed = JSON.parse(localStorage.getItem('processedMovies')) || [];
@@ -1175,9 +1378,13 @@ async function initializeApp() {
 
     const savedSelectedGenres = JSON.parse(localStorage.getItem('selectedGenres')) || [];
     state.selectedGenres = new Set(savedSelectedGenres);
+    pendingState.genres = new Set(savedSelectedGenres); // pendingStateも初期化
 
     // ソート順を読み込み
     loadSortOrder();
+
+    // 初期ボタンの状態を設定
+    updateFilterButtonStates();
 
     // ジャンルリストを取得してからアプリのメインロジックを開始
     const genreData = await fetchFromTMDB('/genre/movie/list');

@@ -391,13 +391,60 @@ async function displayTrailer(youtubeKey) {
     return true;
 }
 
-function displayMovieInfo(movie) {
+/**
+ * 作品情報パネルにスケルトンUI（プレースホルダー）を表示する
+ * コンテンツ読み込み中にレイアウトシフトを防ぐための事前領域確保
+ */
+function displayMovieInfoSkeleton() {
+    movieInfoContainer.innerHTML = `
+        <div class="skeleton skeleton-poster"></div>
+        <div class="movie-details">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-text"></div>
+            <div class="skeleton skeleton-text"></div>
+            <div class="skeleton skeleton-text"></div>
+        </div>
+    `;
+    movieInfoContainer.classList.add('loading');
+}
+
+/**
+ * 作品情報を表示する（スケルトンUIから実コンテンツへ切り替え）
+ * 画像のpreloadを行い、読み込み完了後にコンテンツを表示することで
+ * レイアウトシフトを防止する
+ * @param {Object} movie - 表示する作品情報
+ */
+async function displayMovieInfo(movie) {
     const posterPath = movie.poster_path ? `${IMAGE_BASE_URL}${movie.poster_path}` : 'https://via.placeholder.com/200x300.png?text=No+Image';
+
+    // 画像のpreload: 読み込み完了まで待機してからコンテンツを表示
+    const img = new Image();
+    img.src = posterPath;
+    try {
+        // Image.decode()をサポートしている場合は非同期デコード
+        if (typeof img.decode === 'function') {
+            await img.decode();
+        } else {
+            // フォールバック: onloadイベントを使用
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+            });
+        }
+    } catch (error) {
+        console.warn('画像の読み込みに失敗しました:', error);
+        // エラーが発生してもプレースホルダー画像で続行
+    }
+
     const movieGenres = movie.genre_ids.map(id => {
         const genre = state.genres.find(g => g.id === id);
         return genre ? `<span class="genre-tag" data-genre-id="${id}">${genre.name}</span>` : '';
     }).join('');
 
+    // スケルトン状態を解除
+    movieInfoContainer.classList.remove('loading');
+
+    // コンテンツを挿入
     movieInfoContainer.innerHTML = `
         <img src="${posterPath}" alt="${movie.title} のポスター">
         <div class="movie-details">
@@ -409,6 +456,7 @@ function displayMovieInfo(movie) {
             </div>
         </div>
     `;
+
     // UIが既に表示されている場合のみ再表示（自動非表示後は再表示しない）
     if (isUIVisible) {
         showUI();
@@ -424,6 +472,8 @@ function showLoadingMessage(message, title = '映像が見つかりません') {
         youtubePlayer.remove();
     }
 
+    // スケルトン状態を解除してコンテンツをクリア
+    movieInfoContainer.classList.remove('loading');
     movieInfoContainer.innerHTML = '';
 
     // オーバーレイを非表示（空状態を表示するため）
@@ -985,6 +1035,9 @@ async function loadAndDisplayTrailer(index) {
     updateButtonStates();
     const movie = state.movies[state.currentMovieIndex];
     console.log(`'${movie.title}' の予告映像を検索中...`);
+
+    // スケルトンUIを先行表示（レイアウトシフト防止）
+    displayMovieInfoSkeleton();
 
     const videosData = await fetchFromTMDB(`/movie/${movie.id}/videos`);
 

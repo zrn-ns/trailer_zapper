@@ -1184,6 +1184,9 @@ body {
 
     .info-panel {
         flex: 1 1 auto;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
         min-height: auto;
         padding: 8px;
         border-radius: 12px;
@@ -1196,6 +1199,8 @@ body {
     }
 
     .movie-details {
+        width: 100%;
+        align-items: center;
         gap: 4px;
     }
 
@@ -1350,6 +1355,7 @@ body {
         border-radius: 20px;
         gap: 12px;
         min-width: auto;
+        width: 100%;
     }
 
     .info-panel img {
@@ -1357,6 +1363,7 @@ body {
     }
 
     .movie-details {
+        width: 100%;
         align-items: center;
         gap: 12px;
     }
@@ -1401,6 +1408,110 @@ body {
 
 }
 
+/* スケルトンUI（コンテンツ読み込み中のプレースホルダー） */
+
+/* スケルトン基本クラス: グラデーションアニメーションで読み込み中を表現 */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.08) 0%,
+        rgba(255, 255, 255, 0.18) 50%,
+        rgba(255, 255, 255, 0.08) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+    border-radius: inherit;
+}
+
+/* スケルトンアニメーション: グラデーションを左右にスライド */
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ポスター画像用スケルトン */
+.skeleton-poster {
+    width: clamp(160px, 20vw, 240px);
+    aspect-ratio: 2 / 3;
+    border-radius: 18px;
+    flex-shrink: 0;
+}
+
+/* タイトル用スケルトン */
+.skeleton-title {
+    height: 2rem;
+    width: 80%;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+/* テキスト用スケルトン（複数行のあらすじを表現） */
+.skeleton-text {
+    height: 1rem;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.skeleton-text:last-child {
+    width: 60%;
+}
+
+/* 作品情報パネルの画像にアスペクト比を適用（レイアウトシフト防止） */
+.info-panel img {
+    aspect-ratio: 2 / 3;
+}
+
+/* タブレット横画面用スケルトン調整（721px - 1024px）横並びレイアウト */
+@media (min-width: 721px) and (max-width: 1024px) {
+    .skeleton-poster {
+        width: clamp(80px, 10vw, 100px);
+        flex-shrink: 0;
+    }
+
+    .skeleton-title {
+        height: 1.5rem;
+        margin-bottom: 8px;
+    }
+
+    .skeleton-text {
+        height: 0.7rem;
+        margin-bottom: 4px;
+    }
+}
+
+/* モバイル用スケルトン調整（720px以下）縦スクロールレイアウト */
+@media (max-width: 720px) {
+    .skeleton-poster {
+        width: min(60%, 180px);
+    }
+
+    /* 縦並びレイアウトでは、movie-detailsを中央寄せに */
+    .info-panel .movie-details {
+        width: 100%;
+        align-items: center;
+    }
+
+    /* スケルトンタイトルとテキストも中央寄せ（幅を明示的に設定） */
+    .skeleton-title {
+        width: 80%;
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .skeleton-text {
+        width: 100%;
+        max-width: 350px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .skeleton-text:last-child {
+        width: 60%;
+        max-width: 210px;
+    }
+}
+
 /* アクセシビリティ: 動きを抑えたい設定のユーザー向け */
 @media (prefers-reduced-motion: reduce) {
     .dimming-overlay {
@@ -1415,5 +1526,10 @@ body {
 
     .start-modal {
         transition: none !important;
+    }
+
+    /* スケルトンアニメーションも無効化 */
+    .skeleton {
+        animation: none !important;
     }
 }

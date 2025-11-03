@@ -642,23 +642,37 @@ function togglePause() {
 }
 
 function toggleUIVisibility() {
-    if (!state.hasStarted) return;
-    if (!uiToggleButton) return;
+    console.log('[UI切り替え] toggleUIVisibility()が呼ばれました');
+    if (!state.hasStarted) {
+        console.log('[UI切り替え] state.hasStarted=false のため中止');
+        return;
+    }
+    if (!uiToggleButton) {
+        console.log('[UI切り替え] uiToggleButtonが存在しないため中止');
+        return;
+    }
 
     // 縦レイアウト（≤1024px）では切り替え機能を無効化
     const isPortraitMobile = window.innerWidth <= 1024;
-    if (isPortraitMobile) return;
+    console.log(`[UI切り替え] window.innerWidth=${window.innerWidth}, isPortraitMobile=${isPortraitMobile}`);
+    if (isPortraitMobile) {
+        console.log('[UI切り替え] 縦レイアウトのため切り替え機能は無効');
+        return;
+    }
 
     if (isManuallyHidden) {
+        console.log('[UI切り替え] UIを表示します');
         isManuallyHidden = false;
         uiToggleButton.textContent = '◉';
         showUI(true);
         setSoundEnabled(true);
     } else {
+        console.log('[UI切り替え] UIを非表示にします');
         isManuallyHidden = true;
         uiToggleButton.textContent = '○';
 
         // UI非表示時：未適用の変更を破棄して、現在適用中の条件に戻す
+        console.log('[UI切り替え] revertPendingChanges()を呼び出します');
         revertPendingChanges();
 
         hideUI(true);

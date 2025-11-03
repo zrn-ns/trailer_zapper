@@ -657,6 +657,10 @@ function toggleUIVisibility() {
     } else {
         isManuallyHidden = true;
         uiToggleButton.textContent = '○';
+
+        // UI非表示時：未適用の変更を破棄して、現在適用中の条件に戻す
+        revertPendingChanges();
+
         hideUI(true);
         setSoundEnabled(true);
     }
@@ -989,9 +993,43 @@ async function applyFilters() {
 }
 
 /**
- * フィルター条件をデフォルト状態にリセットして即座に適用
+ * 未適用の変更を破棄して、現在適用中の条件に戻す
  */
-async function resetFilters() {
+function revertPendingChanges() {
+    console.log('[フィルター] 未適用の変更を破棄します');
+
+    // 確定状態（state）からpendingStateにコピー
+    pendingState.providers = state.selectedProviders.slice();
+    pendingState.sortOrder = state.sortOrder;
+    pendingState.genres = new Set(state.selectedGenres);
+
+    // UIコントロールを確定状態に戻す
+    if (netflixFilter) netflixFilter.checked = state.selectedProviders.includes(PROVIDER_IDS.NETFLIX);
+    if (primeVideoFilter) primeVideoFilter.checked = state.selectedProviders.includes(PROVIDER_IDS.PRIME_VIDEO);
+    if (huluFilter) huluFilter.checked = state.selectedProviders.includes(PROVIDER_IDS.HULU);
+    if (uNextFilter) uNextFilter.checked = state.selectedProviders.includes(PROVIDER_IDS.U_NEXT);
+    if (disneyPlusFilter) disneyPlusFilter.checked = state.selectedProviders.includes(PROVIDER_IDS.DISNEY_PLUS);
+    if (appleTvPlusFilter) appleTvPlusFilter.checked = state.selectedProviders.includes(PROVIDER_IDS.APPLE_TV_PLUS);
+
+    if (sortOrderSelect) sortOrderSelect.value = state.sortOrder;
+
+    // ジャンルフィルターのUIも戻す
+    const genreCheckboxes = genreFilterList.querySelectorAll('input[type="checkbox"]');
+    genreCheckboxes.forEach(checkbox => {
+        const genreId = parseInt(checkbox.value);
+        checkbox.checked = state.selectedGenres.has(genreId);
+    });
+
+    // ボタンの状態を更新
+    updateFilterButtonStates();
+
+    console.log('[フィルター] 適用済みの条件に戻しました');
+}
+
+/**
+ * フィルター条件をデフォルト状態にリセット（適用は別途必要）
+ */
+function resetFilters() {
     console.log('[フィルター] リセットボタンがクリックされました');
 
     // デフォルト状態：全6サービスを選択、人気順、ジャンルなし
@@ -1006,14 +1044,10 @@ async function resetFilters() {
     const defaultSortOrder = 'popularity.desc';
     const defaultGenres = new Set();
 
-    // pendingStateとstateの両方をデフォルト状態にする
+    // pendingStateのみをデフォルト状態にする（stateは変更しない）
     pendingState.providers = defaultProviders.slice();
     pendingState.sortOrder = defaultSortOrder;
     pendingState.genres = new Set(defaultGenres);
-
-    state.selectedProviders = defaultProviders.slice();
-    state.sortOrder = defaultSortOrder;
-    state.selectedGenres = new Set(defaultGenres);
 
     // UIコントロールをデフォルト状態に戻す
     if (netflixFilter) netflixFilter.checked = true;
@@ -1031,23 +1065,10 @@ async function resetFilters() {
         checkbox.checked = false;
     });
 
-    // localStorageに保存
-    localStorage.setItem('selectedProviders', JSON.stringify(state.selectedProviders));
-    localStorage.setItem('sortOrder', state.sortOrder);
-    localStorage.setItem('selectedGenres', JSON.stringify(Array.from(state.selectedGenres)));
-
-    // 映画リストと履歴をリセット
-    state.movies = [];
-    state.history = [];
-    state.currentMovieIndex = 0;
-
-    // ボタンの状態を更新
+    // ボタンの状態を更新（適用ボタンが有効になる）
     updateFilterButtonStates();
 
-    console.log('[フィルター] デフォルト状態にリセット完了');
-
-    // APIリクエストを実行
-    await updateAndFetchMovies(true);
+    console.log('[フィルター] デフォルト状態にリセット完了（適用ボタンを押して反映してください）');
 }
 
 async function updateAndFetchMovies(resetPage = true) {

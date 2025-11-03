@@ -1214,18 +1214,7 @@ async function initializeApp() {
         document.addEventListener('fullscreenchange', handleFullscreenChange);
     }
     if (uiToggleButton) {
-        uiToggleButton.addEventListener('click', () => {
-            if (isManuallyHidden) {
-                isManuallyHidden = false;
-                uiToggleButton.textContent = '◉';
-                showUI(true);
-            } else {
-                isManuallyHidden = true;
-                uiToggleButton.textContent = '○';
-                hideUI(true);
-                setSoundEnabled(true);
-            }
-        });
+        uiToggleButton.addEventListener('click', toggleUIVisibility);
         uiToggleButton.textContent = isManuallyHidden ? '○' : '◉';
     }
     // プロバイダーフィルターの変更 → pendingStateを更新（即座に適用しない）

@@ -987,13 +987,13 @@ async function applyFilters() {
 }
 
 /**
- * フィルター条件をデフォルト状態にリセット
+ * フィルター条件をデフォルト状態にリセットして即座に適用
  */
-function resetFilters() {
+async function resetFilters() {
     console.log('[フィルター] リセットボタンがクリックされました');
 
     // デフォルト状態：全6サービスを選択、人気順、ジャンルなし
-    pendingState.providers = [
+    const defaultProviders = [
         PROVIDER_IDS.NETFLIX,
         PROVIDER_IDS.PRIME_VIDEO,
         PROVIDER_IDS.HULU,
@@ -1001,8 +1001,17 @@ function resetFilters() {
         PROVIDER_IDS.DISNEY_PLUS,
         PROVIDER_IDS.APPLE_TV_PLUS
     ];
-    pendingState.sortOrder = 'popularity.desc';
-    pendingState.genres = new Set();
+    const defaultSortOrder = 'popularity.desc';
+    const defaultGenres = new Set();
+
+    // pendingStateとstateの両方をデフォルト状態にする
+    pendingState.providers = defaultProviders.slice();
+    pendingState.sortOrder = defaultSortOrder;
+    pendingState.genres = new Set(defaultGenres);
+
+    state.selectedProviders = defaultProviders.slice();
+    state.sortOrder = defaultSortOrder;
+    state.selectedGenres = new Set(defaultGenres);
 
     // UIコントロールをデフォルト状態に戻す
     if (netflixFilter) netflixFilter.checked = true;
@@ -1012,7 +1021,7 @@ function resetFilters() {
     if (disneyPlusFilter) disneyPlusFilter.checked = true;
     if (appleTvPlusFilter) appleTvPlusFilter.checked = true;
 
-    if (sortOrderSelect) sortOrderSelect.value = 'popularity.desc';
+    if (sortOrderSelect) sortOrderSelect.value = defaultSortOrder;
 
     // ジャンルフィルターのUIもリセット（すべてのチェックを外す）
     const genreCheckboxes = genreFilterList.querySelectorAll('input[type="checkbox"]');
@@ -1020,10 +1029,23 @@ function resetFilters() {
         checkbox.checked = false;
     });
 
+    // localStorageに保存
+    localStorage.setItem('selectedProviders', JSON.stringify(state.selectedProviders));
+    localStorage.setItem('sortOrder', state.sortOrder);
+    localStorage.setItem('selectedGenres', JSON.stringify(Array.from(state.selectedGenres)));
+
+    // 映画リストと履歴をリセット
+    state.movies = [];
+    state.history = [];
+    state.currentMovieIndex = 0;
+
     // ボタンの状態を更新
     updateFilterButtonStates();
 
     console.log('[フィルター] デフォルト状態にリセット完了');
+
+    // APIリクエストを実行
+    await updateAndFetchMovies(true);
 }
 
 async function updateAndFetchMovies(resetPage = true) {

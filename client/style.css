@@ -290,25 +290,6 @@ body {
     transform: translateY(0);
 }
 
-.hero-header {
-    max-width: 640px;
-}
-
-.hero-header h1 {
-    margin: 0 0 12px;
-    font-size: clamp(2.6rem, 6vw, 4.2rem);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    text-shadow: 0 18px 48px rgba(0, 0, 0, 0.52);
-}
-
-.hero-tagline {
-    margin: 0;
-    font-size: clamp(1rem, 2.2vw, 1.2rem);
-    color: var(--text-secondary);
-    line-height: 1.6;
-}
-
 .hud {
     display: flex;
     gap: clamp(24px, 4vw, 64px);
@@ -323,11 +304,11 @@ body {
     border: 1px solid var(--border-glow);
     backdrop-filter: blur(20px);
     border-radius: 28px;
-    padding: 24px;
+    padding: 20px;
     box-shadow: 0 28px 72px rgba(5, 9, 20, 0.55);
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 12px;
 }
 
 .panel-section h3 {
@@ -734,13 +715,6 @@ body {
     }
 }
 
-.panel-hint {
-    margin: 0;
-    font-size: 0.9rem;
-    line-height: 1.7;
-    color: var(--text-secondary);
-}
-
 .info-panel {
     flex: 1 1 480px;
     min-width: min(580px, 100%);
@@ -1123,16 +1097,6 @@ body {
         gap: 6px;
     }
 
-    .hero-header h1 {
-        font-size: clamp(1.3rem, 3vw, 1.8rem);
-        margin-bottom: 2px;
-    }
-
-    .hero-tagline {
-        font-size: 0.75rem;
-        line-height: 1.2;
-    }
-
     .hud {
         flex-direction: row !important;
         flex-wrap: nowrap !important;
@@ -1170,10 +1134,6 @@ body {
     .ghost-button {
         font-size: 0.75rem;
         padding: 6px 10px;
-    }
-
-    .panel-hint {
-        display: none; /* 横画面では非表示にしてスペース節約 */
     }
 
     .info-panel {
@@ -1257,11 +1217,6 @@ body {
         overflow-y: auto;
     }
 
-    /* ヘッダー（アプリ名・リード文）を非表示 */
-    .hero-header {
-        display: none;
-    }
-
     .immersive-stage {
         min-height: auto;
         display: flex;
@@ -1302,20 +1257,6 @@ body {
         height: 52px;
     }
 
-    .hero-header {
-        text-align: center;
-    }
-
-    .hero-header h1 {
-        font-size: clamp(1.8rem, 5vw, 2.4rem);
-        margin-bottom: 8px;
-    }
-
-    .hero-tagline {
-        font-size: 0.9rem;
-        line-height: 1.4;
-    }
-
     .hud {
         flex-direction: column;
         gap: 12px;
@@ -1352,10 +1293,6 @@ body {
     .ghost-button {
         font-size: 0.85rem;
         padding: 10px 16px;
-    }
-
-    .panel-hint {
-        font-size: 0.8rem;
     }
 
     .info-panel {

@@ -430,7 +430,7 @@ function setSoundEnabled(enabled) {
 }
 
 function populateGenreFilterUI() {
-    genreFilterList.innerHTML = '<p class="filter-explanation">チェックを入れたジャンルのみ表示されます。</p>'; // 説明文を動的に追加
+    genreFilterList.innerHTML = '<p class="filter-explanation">チェックを入れたジャンルのいずれかに該当する映画が表示されます。</p>'; // 説明文を動的に追加
     state.genres.forEach(genre => {
         const isChecked = state.selectedGenres.has(genre.id);
         const label = document.createElement('label');
@@ -1110,7 +1110,7 @@ async function updateAndFetchMovies(resetPage = true) {
             };
 
             if (state.selectedGenres.size > 0) {
-                apiParams.with_genres = Array.from(state.selectedGenres).join(',');
+                apiParams.with_genres = Array.from(state.selectedGenres).join('|');
             }
 
             const movieData = await fetchFromTMDB('/discover/movie', apiParams);

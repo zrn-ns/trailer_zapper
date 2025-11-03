@@ -51,29 +51,6 @@
             <div class="hud">
                 <aside class="control-panel">
                     <div class="panel-section">
-                        <h3>配信サービス</h3>
-                        <div class="provider-filters">
-                            <label>
-                                <input type="checkbox" name="provider" value="8" id="netflix-filter" checked> Netflix
-                            </label>
-                            <label>
-                                <input type="checkbox" name="provider" value="9" id="prime-video-filter" checked> Prime Video
-                            </label>
-                            <label>
-                                <input type="checkbox" name="provider" value="15" id="hulu-filter" checked> Hulu
-                            </label>
-                            <label>
-                                <input type="checkbox" name="provider" value="84" id="u-next-filter" checked> U-NEXT
-                            </label>
-                            <label>
-                                <input type="checkbox" name="provider" value="337" id="disney-plus-filter" checked> Disney Plus
-                            </label>
-                            <label>
-                                <input type="checkbox" name="provider" value="350" id="apple-tv-plus-filter" checked> Apple TV+
-                            </label>
-                        </div>
-                    </div>
-                    <div class="panel-section">
                         <h3>並び順</h3>
                         <select id="sort-order" class="sort-select">
                             <option value="popularity.desc">人気順（高い順）</option>
@@ -89,6 +66,9 @@
                             <option value="original_title.asc">タイトル順（A-Z）</option>
                             <option value="original_title.desc">タイトル順（Z-A）</option>
                         </select>
+                    </div>
+                    <div class="panel-section">
+                        <button id="provider-filter-toggle" class="ghost-button">配信サービスで絞り込み</button>
                     </div>
                     <div class="panel-section">
                         <button id="genre-filter-toggle" class="ghost-button">ジャンルで絞り込み</button>
@@ -145,6 +125,37 @@
                 <button id="genre-filter-close" class="ghost-button" aria-label="閉じる">✕</button>
             </div>
             <div id="genre-filter-list" class="genre-filter-modal__list"></div>
+        </div>
+    </div>
+
+    <!-- 配信サービスフィルターモーダル -->
+    <div id="provider-filter-modal" class="provider-filter-modal hidden">
+        <div class="provider-filter-modal__backdrop"></div>
+        <div class="provider-filter-modal__content">
+            <div class="provider-filter-modal__header">
+                <h3>配信サービスで絞り込み</h3>
+                <button id="provider-filter-close" class="ghost-button" aria-label="閉じる">✕</button>
+            </div>
+            <div id="provider-filter-list" class="provider-filter-modal__list">
+                <label>
+                    <input type="checkbox" name="provider" value="8" id="netflix-filter" checked> Netflix
+                </label>
+                <label>
+                    <input type="checkbox" name="provider" value="9" id="prime-video-filter" checked> Prime Video
+                </label>
+                <label>
+                    <input type="checkbox" name="provider" value="15" id="hulu-filter" checked> Hulu
+                </label>
+                <label>
+                    <input type="checkbox" name="provider" value="84" id="u-next-filter" checked> U-NEXT
+                </label>
+                <label>
+                    <input type="checkbox" name="provider" value="337" id="disney-plus-filter" checked> Disney Plus
+                </label>
+                <label>
+                    <input type="checkbox" name="provider" value="350" id="apple-tv-plus-filter" checked> Apple TV+
+                </label>
+            </div>
         </div>
     </div>
 

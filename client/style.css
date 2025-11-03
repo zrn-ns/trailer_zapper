@@ -526,6 +526,89 @@ body {
     accent-color: var(--accent);
 }
 
+/* 配信サービスフィルターモーダル */
+.provider-filter-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    animation: fadeIn 0.2s ease;
+}
+
+.provider-filter-modal.hidden {
+    display: none;
+}
+
+.provider-filter-modal__backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+.provider-filter-modal__content {
+    position: relative;
+    background: var(--bg-panel-strong);
+    border: 1px solid var(--border-glow);
+    border-radius: 24px;
+    width: min(600px, 90vw);
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 32px 80px rgba(5, 9, 20, 0.7);
+    z-index: 201;
+}
+
+.provider-filter-modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--border-glow);
+}
+
+.provider-filter-modal__header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+}
+
+.provider-filter-modal__header .ghost-button {
+    padding: 8px 16px;
+    font-size: 1.2rem;
+    min-width: auto;
+}
+
+.provider-filter-modal__list {
+    padding: 24px 28px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+}
+
+.provider-filter-modal__list label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.provider-filter-modal__list label:hover {
+    color: var(--text-primary);
+}
+
+.provider-filter-modal__list input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+}
+
 /* --- About Modal --- */
 .about-modal {
     position: fixed;

@@ -145,6 +145,10 @@ const genreFilterToggle = document.getElementById('genre-filter-toggle');
 const genreFilterModal = document.getElementById('genre-filter-modal');
 const genreFilterList = document.getElementById('genre-filter-list');
 const genreFilterClose = document.getElementById('genre-filter-close');
+const providerFilterToggle = document.getElementById('provider-filter-toggle');
+const providerFilterModal = document.getElementById('provider-filter-modal');
+const providerFilterList = document.getElementById('provider-filter-list');
+const providerFilterClose = document.getElementById('provider-filter-close');
 const aboutButton = document.getElementById('about-button');
 const aboutModal = document.getElementById('about-modal');
 const aboutModalClose = document.getElementById('about-modal-close');
@@ -769,6 +773,7 @@ let isUIVisible = true;
 let isManuallyHidden = false;
 let uiTimeout = null;
 let isInteracting = false;
+let isModalOpen = false; // モーダルが開いているかどうかのフラグ
 
 function showUI(force = false) {
     if (!uiLayer) return;
@@ -796,6 +801,7 @@ function hideUI(force = false) {
     if (!state.hasStarted && !force) return;
     if (isManuallyHidden && !force) return;
     if (isInteracting && !force) return; // インタラクション中は非表示にしない
+    if (isModalOpen && !force) return; // モーダルが開いている間は非表示にしない
 
     // 縦レイアウト（≤1024px）ではUIを常に表示するため、非表示にしない
     const isPortraitMobile = window.innerWidth <= 1024;
@@ -1247,16 +1253,46 @@ async function initializeApp() {
     // ジャンルフィルターモーダルの開閉
     genreFilterToggle.addEventListener('click', () => {
         genreFilterModal.classList.remove('hidden');
+        isModalOpen = true;
+        isInteracting = true;
+        showUI();
     });
 
     genreFilterClose.addEventListener('click', () => {
         genreFilterModal.classList.add('hidden');
+        isModalOpen = false;
+        isInteracting = false;
     });
 
     // バックドロップクリックでモーダルを閉じる
     genreFilterModal.addEventListener('click', (event) => {
         if (event.target === genreFilterModal || event.target.classList.contains('genre-filter-modal__backdrop')) {
             genreFilterModal.classList.add('hidden');
+            isModalOpen = false;
+            isInteracting = false;
+        }
+    });
+
+    // 配信サービスフィルターモーダルの開閉
+    providerFilterToggle.addEventListener('click', () => {
+        providerFilterModal.classList.remove('hidden');
+        isModalOpen = true;
+        isInteracting = true;
+        showUI();
+    });
+
+    providerFilterClose.addEventListener('click', () => {
+        providerFilterModal.classList.add('hidden');
+        isModalOpen = false;
+        isInteracting = false;
+    });
+
+    // バックドロップクリックでモーダルを閉じる
+    providerFilterModal.addEventListener('click', (event) => {
+        if (event.target === providerFilterModal || event.target.classList.contains('provider-filter-modal__backdrop')) {
+            providerFilterModal.classList.add('hidden');
+            isModalOpen = false;
+            isInteracting = false;
         }
     });
 
@@ -1281,6 +1317,13 @@ async function initializeApp() {
         if (event.key === 'Escape') {
             if (!genreFilterModal.classList.contains('hidden')) {
                 genreFilterModal.classList.add('hidden');
+                isModalOpen = false;
+                isInteracting = false;
+            }
+            if (!providerFilterModal.classList.contains('hidden')) {
+                providerFilterModal.classList.add('hidden');
+                isModalOpen = false;
+                isInteracting = false;
             }
             if (!aboutModal.classList.contains('hidden')) {
                 aboutModal.classList.add('hidden');
@@ -1329,7 +1372,8 @@ async function initializeApp() {
         if (
             !uiLayer.contains(event.target) &&
             event.target !== uiToggleButton &&
-            state.hasStarted
+            state.hasStarted &&
+            !isModalOpen // モーダルが開いている場合は切り替えない
         ) {
             toggleUIVisibility();
         }

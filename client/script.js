@@ -47,6 +47,18 @@ const PROVIDER_IDS = {
 };
 
 /**
+ * TMDBのジャンル名を自然な日本語に変換するマッピング
+ * TMDBの日本語翻訳が不自然な場合、このマッピングで上書きします
+ */
+const GENRE_NAME_OVERRIDE = {
+    36: '歴史', // TMDBでは「履歴」
+    37: '西部劇', // TMDBの翻訳を確認して必要なら修正
+    878: 'SF', // TMDBでは「サイエンスフィクション」
+    9648: 'ミステリー', // TMDBでは「謎」
+    10402: 'ミュージカル', // TMDBでは「音楽」
+};
+
+/**
  * TMDB APIからデータを非同期で取得するためのラッパー関数
  * プロキシサーバー経由でリクエストを送信し、APIキーはサーバー側で管理されます
  * @param {string} endpoint - APIのエンドポイント (例: '/movie/popular')
@@ -1407,7 +1419,13 @@ async function initializeApp() {
     // ジャンルリストを取得してからアプリのメインロジックを開始
     const genreData = await fetchFromTMDB('/genre/movie/list');
     if (genreData && genreData.genres) {
-        state.genres = genreData.genres;
+        // ジャンル名を自然な日本語に変換
+        state.genres = genreData.genres.map(genre => {
+            if (GENRE_NAME_OVERRIDE[genre.id]) {
+                return { ...genre, name: GENRE_NAME_OVERRIDE[genre.id] };
+            }
+            return genre;
+        });
         populateGenreFilterUI();
     }
 

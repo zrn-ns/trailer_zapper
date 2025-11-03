@@ -987,37 +987,43 @@ async function applyFilters() {
 }
 
 /**
- * フィルター条件の変更を破棄し、確定状態に戻す
+ * フィルター条件をデフォルト状態にリセット
  */
 function resetFilters() {
     console.log('[フィルター] リセットボタンがクリックされました');
 
-    // 確定状態（state）からpendingStateにコピー
-    pendingState.providers = state.selectedProviders.slice();
-    pendingState.sortOrder = state.sortOrder;
-    pendingState.genres = new Set(state.selectedGenres);
+    // デフォルト状態：全6サービスを選択、人気順、ジャンルなし
+    pendingState.providers = [
+        PROVIDER_IDS.NETFLIX,
+        PROVIDER_IDS.PRIME_VIDEO,
+        PROVIDER_IDS.HULU,
+        PROVIDER_IDS.U_NEXT,
+        PROVIDER_IDS.DISNEY_PLUS,
+        PROVIDER_IDS.APPLE_TV_PLUS
+    ];
+    pendingState.sortOrder = 'popularity.desc';
+    pendingState.genres = new Set();
 
-    // UIコントロールを確定状態に戻す
-    if (netflixFilter) netflixFilter.checked = state.selectedProviders.includes(PROVIDER_IDS.NETFLIX);
-    if (primeVideoFilter) primeVideoFilter.checked = state.selectedProviders.includes(PROVIDER_IDS.PRIME_VIDEO);
-    if (huluFilter) huluFilter.checked = state.selectedProviders.includes(PROVIDER_IDS.HULU);
-    if (uNextFilter) uNextFilter.checked = state.selectedProviders.includes(PROVIDER_IDS.U_NEXT);
-    if (disneyPlusFilter) disneyPlusFilter.checked = state.selectedProviders.includes(PROVIDER_IDS.DISNEY_PLUS);
-    if (appleTvPlusFilter) appleTvPlusFilter.checked = state.selectedProviders.includes(PROVIDER_IDS.APPLE_TV_PLUS);
+    // UIコントロールをデフォルト状態に戻す
+    if (netflixFilter) netflixFilter.checked = true;
+    if (primeVideoFilter) primeVideoFilter.checked = true;
+    if (huluFilter) huluFilter.checked = true;
+    if (uNextFilter) uNextFilter.checked = true;
+    if (disneyPlusFilter) disneyPlusFilter.checked = true;
+    if (appleTvPlusFilter) appleTvPlusFilter.checked = true;
 
-    if (sortOrderSelect) sortOrderSelect.value = state.sortOrder;
+    if (sortOrderSelect) sortOrderSelect.value = 'popularity.desc';
 
-    // ジャンルフィルターのUIもリセット
+    // ジャンルフィルターのUIもリセット（すべてのチェックを外す）
     const genreCheckboxes = genreFilterList.querySelectorAll('input[type="checkbox"]');
     genreCheckboxes.forEach(checkbox => {
-        const genreId = parseInt(checkbox.value);
-        checkbox.checked = state.selectedGenres.has(genreId);
+        checkbox.checked = false;
     });
 
     // ボタンの状態を更新
     updateFilterButtonStates();
 
-    console.log('[フィルター] リセット完了');
+    console.log('[フィルター] デフォルト状態にリセット完了');
 }
 
 async function updateAndFetchMovies(resetPage = true) {

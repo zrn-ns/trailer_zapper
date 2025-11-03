@@ -1038,14 +1038,8 @@ async function updateAndFetchMovies(resetPage = true) {
             state.currentMovieIndex = 0;
         }
 
-        const selectedProviders = [];
-        if (netflixFilter.checked) selectedProviders.push(PROVIDER_IDS.NETFLIX);
-        if (primeVideoFilter.checked) selectedProviders.push(PROVIDER_IDS.PRIME_VIDEO);
-
-        localStorage.setItem('selectedProviders', JSON.stringify(selectedProviders));
-        state.selectedProviders = selectedProviders;
-
-        if (selectedProviders.length === 0) {
+        // state.selectedProvidersを使用（applyFiltersで既に設定済み）
+        if (state.selectedProviders.length === 0) {
             state.movies = [];
             showLoadingMessage('視聴したい配信サービスを選択してください。');
             updateButtonStates();
@@ -1064,7 +1058,7 @@ async function updateAndFetchMovies(resetPage = true) {
             state.currentPage = pageToFetch;
 
             const apiParams = {
-                with_watch_providers: selectedProviders.join('|'),
+                with_watch_providers: state.selectedProviders.join('|'),
                 watch_region: REGION,
                 sort_by: state.sortOrder,
                 page: pageToFetch,

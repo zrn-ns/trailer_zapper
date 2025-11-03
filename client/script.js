@@ -698,6 +698,10 @@ function showUI(force = false) {
         // ボタンのアイコンを更新
         if (uiToggleButton) {
             uiToggleButton.textContent = '◉';
+            uiToggleButton.setAttribute('tabindex', '0'); // フォーカス可能にする
+        }
+        if (aboutButton) {
+            aboutButton.setAttribute('tabindex', '0'); // フォーカス可能にする
         }
     }
 }
@@ -721,6 +725,10 @@ function hideUI(force = false) {
         // ボタンのアイコンを更新
         if (uiToggleButton) {
             uiToggleButton.textContent = '○';
+            uiToggleButton.setAttribute('tabindex', '-1'); // フォーカス不可にする
+        }
+        if (aboutButton) {
+            aboutButton.setAttribute('tabindex', '-1'); // フォーカス不可にする
         }
     }
 }
@@ -1242,9 +1250,11 @@ async function initializeApp() {
                 }
                 if (uiToggleButton) {
                     uiToggleButton.style.visibility = 'visible';
+                    uiToggleButton.setAttribute('tabindex', '0'); // フォーカス可能にする
                 }
                 if (aboutButton) {
                     aboutButton.style.visibility = 'visible';
+                    aboutButton.setAttribute('tabindex', '0'); // フォーカス可能にする
                 }
 
                 // theater-screenを非表示にしてから、暗転オーバーレイをゆっくりフェードアウト
